@@ -110,7 +110,7 @@ export default function PostCard({ post }: PostCardProps) {
             <Button 
               variant="outline" 
               size="sm" 
-              className="w-full" 
+              className="w-full hover:bg-accent hover:text-accent-foreground" 
               asChild
             >
               <Link href={post.slug ? `/preview/${post.slug}` : `/dashboard/posts/${post.id}`}>
@@ -120,7 +120,7 @@ export default function PostCard({ post }: PostCardProps) {
             <Button 
               variant="default" 
               size="sm" 
-              className="w-full" 
+              className="w-full hover:bg-primary/90" 
               asChild
             >
               <Link href={`/dashboard/posts/${post.id}/edit`}>

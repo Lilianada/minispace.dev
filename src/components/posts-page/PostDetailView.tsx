@@ -41,7 +41,7 @@ export default function PostDetailView({ post }: PostDetailViewProps) {
           </p>
         </div>
         <div className="flex space-x-2">
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" className="hover:bg-accent hover:text-accent-foreground">
             <Link href={`/dashboard/posts/${post.id}/edit`}>Edit Post</Link>
           </Button>
           <PostActions post={post} />
@@ -65,7 +65,7 @@ export default function PostDetailView({ post }: PostDetailViewProps) {
                 Last updated: {formatDate(post.updatedAt)}
               </div>
               {post.status === 'published' && post.slug && (
-                <Button asChild variant="outline" size="sm">
+                <Button asChild variant="outline" size="sm" className="hover:bg-accent hover:text-accent-foreground">
                   <Link href={`/${post.slug}`} target="_blank">
                     View Live
                   </Link>

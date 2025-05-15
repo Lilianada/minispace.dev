@@ -90,7 +90,7 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
           )}
         </Link>
         <button
-          className="ml-auto text-muted-foreground hover:text-foreground p-1 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+          className="ml-auto text-muted-foreground hover:text-foreground p-1 rounded-md focus:text-primary"
           onClick={() => onToggle(!isCollapsed)}
         >
           {isCollapsed ? (
@@ -109,7 +109,12 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       <nav className="mt-5 px-2">
         <div className="space-y-1">
           {navigation.map((item) => {
-            const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+            // Fix for path matching logic - only match exact path or its direct children (not all descendants)
+            // For dashboard index page - exact match only
+            // For other pages - exact match or direct children
+            const isActive = item.href === '/dashboard' 
+              ? pathname === '/dashboard' 
+              : pathname === item.href || pathname.match(new RegExp(`^${item.href}/[^/]+$`));
             
             return (
               <Link
