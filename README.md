@@ -1,36 +1,103 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MINISPACE &nbsp; <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/minimize.svg" alt="Minispace Logo" height="20" />
+
+> A lightweight blogging platform with user subdomains.  
+> Like Bear Blog, but with your own personal space.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/minimize.svg" width="60" alt="Minispace Logo" />
+</p>
+
+<p align="center">
+  <b>Built with React • Firebase Powered • Minimal by Design</b>
+</p>
+
+<p align="center">
+  <img alt="React" src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB"/>
+  <img alt="Firebase" src="https://img.shields.io/badge/Firebase-ffca28?style=for-the-badge&logo=firebase&logoColor=white"/>
+  <img alt="Lucide" src="https://img.shields.io/badge/Lucide_Icons-000000?style=for-the-badge&logo=lucide&logoColor=white"/>
+</p>
+
+---
+
+## Overview
+**MINISPACE** is a clean, lightweight blogging platform where users get their own subdomain (`username.minispace.dev`) to publish content with minimal distractions. Each user's blog functions as a standalone website with customizable pages, navigation styles, and appearance.
+
+---
+
+## Features
+- Personal subdomains for each user (`username.minispace.dev`)
+- Customizable pages (home, projects, archive, etc.)
+- Multiple navigation style options
+- Customizable footer text
+- Extremely lightweight and fast-loading blogs
+- No client-side JavaScript for blog pages
+- Secure authentication with Firebase
+- Cloud Firestore database
+- Dashboard for content management
+- Responsive on all devices
+
+---
+
+## Tech Stack
+- **Frontend:** Next.js App Router
+- **Icons:** `lucide-react`
+- **Authentication:** Firebase Auth + Firebase Admin SDK
+- **Database:** Firebase Firestore
+- **Styling:** Inline CSS for fast loading
+- **Subdomain Routing:** Next.js middleware
+- **Hosting:** Vercel
+
+---
 
 ## Getting Started
 
-First, run the development server:
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/mini.git
+   cd mini
+   ```
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up Firebase**
+   - Create a new Firebase project
+   - Enable **Authentication** (Email/Password)
+   - Create a **Firestore** database
+   - Add your Firebase configuration to `.env.local`
+
+4. **Run the app locally**
+   ```bash
+   npm run dev
+   ```
+
+---
+
+## Project Structure
+```
+/app
+  /[username]/dashboard  → User dashboard pages
+  /subdomain/[username]  → Subdomain blog routes
+  /api                   → API routes
+/components              → UI Components
+/lib                     → Firebase, auth utilities
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## License
+MIT License.  
+Feel free to fork, customize, and make it yours!
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## Final Note
+MINISPACE is intentionally lightweight.  
+No bloated JavaScript. No tracking. No distractions.  
+Just your content, delivered blazingly fast. ✍🏽
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+built by me, [Lily](https://github.com/lilianada)# minispace.dev
