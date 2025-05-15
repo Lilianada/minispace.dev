@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import PostForm from '@/components/posts/PostForm';
+import PostForm from '@/components/posts-page/PostForm';
 
 export const metadata: Metadata = {
   title: 'Create New Post | Minispace',

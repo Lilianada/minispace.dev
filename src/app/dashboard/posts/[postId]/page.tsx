@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getPostById } from '@/lib/api/posts';
-import PostDetailView from '@/components/posts/PostDetailView';
+import PostDetailView from '@/components/posts-page/PostDetailView';
 
 interface PostPageProps {
   params: {

@@ -281,3 +281,31 @@
 Link {
   cursor: pointer;
 }
+
+/* Add this at the end of your globals.css file */
+
+@keyframes bounce {
+  to {
+    opacity: 1;
+    transform: translateY(-8px);
+  }
+}
+
+.animate-bounce-delay-0 {
+  animation: bounce 0.6s infinite alternate;
+}
+
+.animate-bounce-delay-200 {
+  animation: bounce 0.6s infinite alternate;
+  animation-delay: 0.2s;
+}
+
+.animate-bounce-delay-400 {
+  animation: bounce 0.6s infinite alternate;
+  animation-delay: 0.4s;
+}
+
+.animate-bounce-delay-600 {
+  animation: bounce 0.6s infinite alternate;
+  animation-delay: 0.6s;
+}

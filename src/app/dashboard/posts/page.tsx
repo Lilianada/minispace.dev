@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import PostsList from '@/components/posts/PostsList';
+import PostsList from '@/components/posts-page/PostsList';
 
 export const metadata: Metadata = {
   title: 'Manage Posts | Minispace',

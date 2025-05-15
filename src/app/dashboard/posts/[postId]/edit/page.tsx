@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getPostById } from '@/lib/api/posts';
-import PostForm from '@/components/posts/PostForm';
+import PostForm from '@/components/posts-page/PostForm';
 
 interface EditPostPageProps {
   params: {
@@ -10,7 +10,9 @@ interface EditPostPageProps {
 }
 
 export async function generateMetadata({ params }: EditPostPageProps): Promise<Metadata> {
-  const post = await getPostById(params.postId);
+  // Destructure postId first to avoid the warning
+  const { postId } = params;
+  const post = await getPostById(postId);
   
   if (!post) {
     return {
@@ -25,7 +27,9 @@ export async function generateMetadata({ params }: EditPostPageProps): Promise<M
 }
 
 export default async function EditPostPage({ params }: EditPostPageProps) {
-  const post = await getPostById(params.postId);
+  // Destructure postId first to avoid the warning
+  const { postId } = params;
+  const post = await getPostById(postId);
   
   if (!post) {
     notFound();
