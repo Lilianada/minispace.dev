@@ -3,6 +3,8 @@ import "./globals.css";
 import Providers from "@/components/providers";
 import { Analytics } from "@vercel/analytics/react";
 import { ToastProvider } from "@/components/ui/toast";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export const metadata: Metadata = {
   title: "Minispace - Minimalist Blogging",
@@ -46,8 +48,11 @@ export default function RootLayout({
       <body className="antialiased">
         <ToastProvider>
           <Providers>
-            {children}
-            <Analytics />
+            <TooltipProvider>
+              {children}
+              <Analytics />
+              <Toaster />
+            </TooltipProvider>
           </Providers>
         </ToastProvider>
       </body>

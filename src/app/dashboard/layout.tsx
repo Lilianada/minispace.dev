@@ -23,7 +23,7 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="h-screen flex flex-col md:flex-row">
+    <div className="min-h-screen flex flex-col md:flex-row">
       {/* Sidebar - hidden on mobile */}
       <div className="hidden md:block">
         <Sidebar 
