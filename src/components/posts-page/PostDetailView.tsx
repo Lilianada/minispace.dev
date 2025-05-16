@@ -33,7 +33,7 @@ export default function PostDetailView({ post }: PostDetailViewProps) {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">{post.title}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{post.title}</h1>
           <p className="text-muted-foreground">
             {post.status === 'published' && post.publishedAt
               ? `Published on ${formatDate(post.publishedAt)}`
@@ -60,7 +60,7 @@ export default function PostDetailView({ post }: PostDetailViewProps) {
             </div>
           </CardContent>
           <CardFooter className="border-t bg-muted/50">
-            <div className="w-full flex justify-between items-center">
+            <div className="w-full flex justify-between items-center mt-4">
               <div className="text-sm text-muted-foreground">
                 Last updated: {formatDate(post.updatedAt)}
               </div>

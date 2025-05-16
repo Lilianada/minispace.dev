@@ -3,16 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { 
-  Card, 
-  CardContent, 
-  CardHeader,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader } from '@/components/ui/loader';
-import PostCard from './PostCard';
 import PostFilters from './PostFilters';
+import PostListHeader from './PostListHeader';
+import PostListTable from './PostListTable';
+import PostPagination from './PostPagination';
 import usePosts from '@/hooks/usePosts';
 
 export default function PostsList() {
@@ -29,7 +27,7 @@ export default function PostsList() {
   const [search, setSearch] = useState(searchQuery);
   
   // Custom hook to fetch posts with filters
-  const { posts, totalPages, isLoading, error } = usePosts({
+  const { posts, totalPages, isLoading, error, mutate } = usePosts({
     page: currentPage,
     status,
     sort,
@@ -77,27 +75,7 @@ export default function PostsList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Posts</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage and organize all your blog posts
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/dashboard/posts/new-post" className="shrink-0">
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              viewBox="0 0 20 20" 
-              fill="currentColor" 
-              className="w-5 h-5 mr-2"
-            >
-              <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-            </svg>
-            New Post
-          </Link>
-        </Button>
-      </div>
+      <PostListHeader />
 
       <Card>
         <CardHeader className="pb-3">
@@ -124,7 +102,7 @@ export default function PostsList() {
             </div>
           ) : error ? (
             <div className="text-center py-8 text-destructive">
-              <p>Error loading posts: {error}</p>
+              <p>Error loading posts: {error.message}</p>
               <Button 
                 variant="outline" 
                 onClick={() => router.refresh()} 
@@ -146,38 +124,20 @@ export default function PostsList() {
               </Button>
             </div>
           ) : (
-            <div className="space-y-4">
-              {posts.map((post) => (
-                <PostCard key={post.id} post={post} />
-              ))}
+            <>
+              <PostListTable 
+                posts={posts} 
+                mutate={mutate} 
+              />
               
-              {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex justify-center pt-4">
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                    >
-                      Previous
-                    </Button>
-                    <span className="text-sm">
-                      Page {currentPage} of {totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
+                <PostPagination 
+                  currentPage={currentPage} 
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                />
               )}
-            </div>
+            </>
           )}
         </CardContent>
       </Card>

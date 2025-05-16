@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import DeletePostDialog from './DeletePostDialog';
 import { Post } from '@/lib/api/posts';
 
@@ -115,8 +115,8 @@ export default function PostActions({ post }: PostActionsProps) {
       <DeletePostDialog
         postId={post.id}
         postTitle={post.title}
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
+        open={isDeleteDialogOpen}
+        onOpenChange={() => setIsDeleteDialogOpen(false)}
       />
     </>
   );

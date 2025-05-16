@@ -81,14 +81,14 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
     <div className={`fixed h-full bg-background border-r border-border transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'}`}>
       {/* Sidebar header */}
       <div className="h-16 flex items-center px-4 border-b border-border">
-        <Link href="/dashboard" className="flex items-center">
+        <div className="flex items-center">
           {!isCollapsed && (
             <span className="text-xl font-medium text-primary">Minispace</span>
           )}
           {isCollapsed && (
             <span className="text-xl font-medium text-primary">M</span>
           )}
-        </Link>
+        </div>
         <button
           className="ml-auto text-muted-foreground hover:text-foreground p-1 rounded-md focus:text-primary"
           onClick={() => onToggle(!isCollapsed)}
@@ -109,9 +109,6 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       <nav className="mt-5 px-2">
         <div className="space-y-1">
           {navigation.map((item) => {
-            // Fix for path matching logic - only match exact path or its direct children (not all descendants)
-            // For dashboard index page - exact match only
-            // For other pages - exact match or direct children
             const isActive = item.href === '/dashboard' 
               ? pathname === '/dashboard' 
               : pathname === item.href || pathname.match(new RegExp(`^${item.href}/[^/]+$`));
@@ -123,7 +120,7 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                 className={`${
                   isActive
                     ? 'bg-primary/10 text-primary'
-                    : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                    : 'text-muted-foreground hover:bg-accent hover:text-muted'
                 } group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors`}
               >
                 {item.icon(`h-5 w-5 mr-${isCollapsed ? '0' : '3'} flex-shrink-0`)}

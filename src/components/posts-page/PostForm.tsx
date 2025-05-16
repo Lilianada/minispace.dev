@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import PostEditor from './PostEditor';
 import PostMetadataForm from './PostMetadataForm';
 import { createPost, updatePost } from '@/lib/api/posts';
@@ -98,7 +98,7 @@ export default function PostForm({ initialData, isEditing = false }: PostFormPro
                   <FormControl>
                     <Input
                       placeholder="Enter post title"
-                      className="text-lg font-medium"
+                      className="text-sm font-medium"
                       {...field}
                     />
                   </FormControl>

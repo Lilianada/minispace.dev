@@ -2,10 +2,10 @@
 
 import { useCallback, useMemo } from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import ReactMarkdown from 'react-markdown';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
+import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 
 interface PostEditorProps {
   form: UseFormReturn<{
@@ -49,7 +49,7 @@ export default function PostEditor({ form, preview = false }: PostEditorProps) {
                     handleTextareaChange(e);
                   }}
                   placeholder="Write your post content here using Markdown..."
-                  className="min-h-[500px] font-mono text-sm resize-y"
+                  className="min-h-[300px] lg:min-h-[500px] font-mono text-sm resize-y"
                 />
               </FormControl>
               <FormMessage />
@@ -58,11 +58,9 @@ export default function PostEditor({ form, preview = false }: PostEditorProps) {
         />
       </TabsContent>
       <TabsContent value="preview" className="mt-2">
-        <div className="min-h-[500px] p-4 border rounded-md overflow-auto">
+        <div className="min-h-[300px] lg:min-h-[500px] p-4 border rounded-md overflow-auto">
           {previewContent ? (
-            <div className="prose prose-sm dark:prose-invert max-w-none">
-              <ReactMarkdown>{previewContent}</ReactMarkdown>
-            </div>
+            <MarkdownRenderer content={previewContent} />
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">
               No content to preview

@@ -4,7 +4,7 @@ interface LoadingScreenProps {
   message?: string;
 }
 
-export default function LoadingScreen({ message = 'Loading...' }: LoadingScreenProps) {
+export default function LoadingScreen({ message = 'Coming up...' }: LoadingScreenProps) {
   return (
     <div className="loading-screen">
       <div className="loading-container">

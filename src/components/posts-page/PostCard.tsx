@@ -175,8 +175,8 @@ export default function PostCard({ post }: PostCardProps) {
       <DeletePostDialog 
         postId={post.id}
         postTitle={post.title}
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
+        open={isDeleteDialogOpen}
+        onOpenChange={() => setIsDeleteDialogOpen(false)}
       />
     </Card>
   );
