@@ -9,7 +9,7 @@ import {
   onAuthStateChanged,
   sendPasswordResetEmail
 } from 'firebase/auth';
-import { auth, db } from './firebase';
+import { auth, db } from './firebase/config';
 import { doc, getDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import LoadingScreen from '@/components/LoadingScreen';
 

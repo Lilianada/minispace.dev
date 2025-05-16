@@ -1,5 +1,5 @@
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from './firebase';
+import { db } from './firebase/config';
 
 // Validate username format - only alphanumeric characters and underscores
 // Minimum 3 characters, maximum 20 characters

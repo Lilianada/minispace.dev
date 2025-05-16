@@ -1,14 +1,17 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // This module provides API functions for managing posts
 
-// Type definitions
+// Define a common interface for posts
 export interface PostData {
   title: string;
   content: string;
   slug?: string;
   excerpt?: string;
   tags?: string[];
+  status?: 'published' | 'draft';
 }
 
+// Type definitions
 export interface Post {
   id: string;
   title: string;
@@ -20,199 +23,228 @@ export interface Post {
   createdAt: string;
   updatedAt: string;
   views: number;
-  comments?: number; // New field
-  likes?: number;     // New field
-  shares?: number;    // New field
-}
-
-// Mock data for development
-const MOCK_POSTS: Post[] = [
-  {
-    id: '1',
-    title: 'Getting Started with Minispace',
-    content: '# Getting Started\n\nThis is a sample post about how to use Minispace blogging platform.',
-    slug: 'getting-started',
-    excerpt: 'A comprehensive guide to get started with the Minispace blogging platform',
-    tags: ['guide', 'introduction'],
-    status: 'published',
-    createdAt: '2025-05-01T12:00:00Z',
-    updatedAt: '2025-05-01T12:00:00Z',
-    views: 243,
-    comments: 12,
-    likes: 56,
-    shares: 8
-  },
-  {
-    id: '2',
-    title: 'Best Practices for Blog SEO',
-    content: '# SEO Best Practices\n\nHere are some tips to improve your blog\'s search engine ranking.',
-    slug: 'blog-seo-best-practices',
-    excerpt: 'Learn how to optimize your blog posts for search engines',
-    tags: ['seo', 'marketing'],
-    status: 'published',
-    createdAt: '2025-04-28T10:30:00Z',
-    updatedAt: '2025-04-28T16:45:00Z',
-    views: 189,
-    comments: 8,
-    likes: 34,
-    shares: 5
-  },
-  {
-    id: '3',
-    title: 'How to Grow Your Blog Audience',
-    content: '# Growing Your Audience\n\nStrategies to expand your readership and build a community.',
-    slug: 'grow-blog-audience',
-    excerpt: 'Effective strategies to grow your blog audience',
-    tags: ['growth', 'audience', 'marketing'],
-    status: 'draft',
-    createdAt: '2025-04-15T08:20:00Z',
-    updatedAt: '2025-04-15T08:20:00Z',
-    views: 0,
-    comments: 0,
-    likes: 0,
-    shares: 0
-  },
-];
-
-// In a real app, this would be replaced by actual API calls to your backend
-
-/**
- * Get all posts
- * @returns Promise resolving to an array of posts
- */
-export async function getPosts(): Promise<Post[]> {
-  // In a real app, fetch from your API endpoint
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([...MOCK_POSTS]);
-    }, 500); // Simulate network delay
-  });
-}
-
-/**
- * Get a post by ID
- * @param id The post ID
- * @returns Promise resolving to the post or null if not found
- */
-export async function getPostById(id: string): Promise<Post | null> {
-  // In a real app, fetch from your API endpoint
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const post = MOCK_POSTS.find(p => p.id === id) || null;
-      resolve(post);
-    }, 300);
-  });
+  comments?: number;
+  likes?: number;
+  shares?: number;
 }
 
 /**
  * Create a new post
- * @param data The post data
- * @returns Promise resolving to the created post
  */
-export async function createPost(data: PostData): Promise<Post> {
-  // In a real app, send a POST request to your API endpoint
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const newPost: Post = {
+export async function createPost(data: PostData): Promise<any> {
+  try {
+    const response = await fetch('/api/posts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
         ...data,
-        id: `${Date.now()}`, // Generate a temporary ID
-        slug: data.slug || `post-${Date.now()}`, // Use provided slug or generate one
-        status: 'published', // Default to published
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        views: 0,
-        comments: 0,
-        likes: 0,
-        shares: 0
-      };
-      
-      // In a real app, you'd save to database here
-      MOCK_POSTS.push(newPost);
-      resolve(newPost);
-    }, 800);
-  });
+        status: data.status || 'draft',
+      }),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to create post');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating post:', error);
+    throw error;
+  }
+}
+
+/**
+ * API functions for post management
+ */
+
+export interface PostFilters {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+  sort?: string;
+}
+
+/**
+ * Get posts with filters and pagination
+ */
+export async function getPosts(filters: PostFilters = {}) {
+  const {
+    page = 1,
+    limit = 10,
+    search = '',
+    status = 'all',
+    sort = 'newest'
+  } = filters;
+  
+  const queryParams = new URLSearchParams();
+  queryParams.set('page', page.toString());
+  queryParams.set('limit', limit.toString());
+  
+  if (search) {
+    queryParams.set('search', search);
+  }
+  
+  if (status && status !== 'all') {
+    queryParams.set('status', status);
+  }
+  
+  if (sort && sort !== 'newest') {
+    queryParams.set('sort', sort);
+  }
+  
+  try {
+    // Ensure we're using the correct API path (/api/posts)
+    const response = await fetch(`/api/posts?${queryParams.toString()}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      // Add cache: 'no-store' for server components
+      cache: 'no-store'
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to fetch posts');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get a single post by ID
+ * @param id The ID of the post to retrieve
+ * @returns Promise resolving to the post
+ */
+export async function getPostById(id: string) {
+  try {
+    // Validate input
+    if (!id) {
+      throw new Error('Post ID is required');
+    }
+    
+    // Make API request with correct URL path (/api/posts/[id])
+    const response = await fetch(`/api/posts/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      // Add cache: 'no-store' for server components to ensure fresh data
+      cache: 'no-store'
+    });
+    
+    // Parse response
+    const data = await response.json();
+    
+    // Handle errors
+    if (!response.ok) {
+      throw new Error(data.error || `Failed to fetch post (${response.status})`);
+    }
+    
+    // Return post data
+    return data;
+  } catch (error) {
+    // Standardize error logging and propagation
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`Error fetching post: ${errorMessage}`);
+    throw error;
+  }
+}
+
+/**
+ * Update a post's status
+ * @param id The ID of the post to update
+ * @param status The new status (published or draft)
+ * @returns Promise resolving to the updated post
+ */
+export async function updatePostStatus(id: string, status: 'published' | 'draft') {
+  try {
+    // Validate input
+    if (!id) {
+      throw new Error('Post ID is required');
+    }
+    
+    if (status !== 'published' && status !== 'draft') {
+      throw new Error('Status must be either "published" or "draft"');
+    }
+    
+    // Make API request
+    const response = await fetch(`/api/posts/${id}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status }),
+    });
+    
+    // Parse response
+    const data = await response.json();
+    
+    // Handle errors
+    if (!response.ok) {
+      throw new Error(data.error || `Failed to update post status (${response.status})`);
+    }
+    
+    // Return updated post data
+    return data;
+  } catch (error) {
+    // Standardize error logging and propagation
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`Error updating post status: ${errorMessage}`);
+    throw error;
+  }
+}
+
+/**
+ * Delete a post
+ */
+export async function deletePost(id: string): Promise<boolean> {
+  try {
+    const response = await fetch(`/api/posts/${id}`, {
+      method: 'DELETE',
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to delete post');
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error deleting post:', error);
+    throw error;
+  }
 }
 
 /**
  * Update an existing post
- * @param id The post ID
- * @param data The updated post data
- * @returns Promise resolving to the updated post
  */
-export async function updatePost(id: string, data: Partial<PostData>): Promise<Post> {
-  // In a real app, send a PUT/PATCH request to your API endpoint
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const postIndex = MOCK_POSTS.findIndex(p => p.id === id);
-      
-      if (postIndex === -1) {
-        reject(new Error('Post not found'));
-        return;
-      }
-      
-      const updatedPost: Post = {
-        ...MOCK_POSTS[postIndex],
-        ...data,
-        updatedAt: new Date().toISOString()
-      };
-      
-      // In a real app, you'd update the database here
-      MOCK_POSTS[postIndex] = updatedPost;
-      resolve(updatedPost);
-    }, 800);
-  });
-}
-
-/**
- * Delete a post by ID
- * @param id The post ID
- * @returns Promise that resolves when the post is deleted
- */
-export async function deletePost(id: string): Promise<void> {
-  // In a real app, send a DELETE request to your API endpoint
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const postIndex = MOCK_POSTS.findIndex(p => p.id === id);
-      
-      if (postIndex === -1) {
-        reject(new Error('Post not found'));
-        return;
-      }
-      
-      // In a real app, you'd delete from database
-      MOCK_POSTS.splice(postIndex, 1);
-      resolve();
-    }, 500);
-  });
-}
-
-/**
- * Toggle the publish status of a post
- * @param id The post ID
- * @returns Promise resolving to the updated post
- */
-export async function togglePostStatus(id: string): Promise<Post> {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const postIndex = MOCK_POSTS.findIndex(p => p.id === id);
-      
-      if (postIndex === -1) {
-        reject(new Error('Post not found'));
-        return;
-      }
-      
-      const post = MOCK_POSTS[postIndex];
-      const newStatus = post.status === 'published' ? 'draft' : 'published';
-      
-      const updatedPost: Post = {
-        ...post,
-        status: newStatus,
-        updatedAt: new Date().toISOString()
-      };
-      
-      // In a real app, you'd update the database here
-      MOCK_POSTS[postIndex] = updatedPost;
-      resolve(updatedPost);
-    }, 500);
-  });
+export async function updatePost(id: string, data: PostData): Promise<any> {
+  try {
+    const response = await fetch(`/api/posts/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to update post');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating post:', error);
+    throw error;
+  }
 }
