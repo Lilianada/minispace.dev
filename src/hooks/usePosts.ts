@@ -1,20 +1,40 @@
-import { useState, useEffect } from 'react';
-import { Post, getPosts } from '@/lib/api/posts';
+'use client';
 
-interface UsePostsOptions {
-  page?: number;
-  status?: string;
-  sort?: string;
-  search?: string;
-  limit?: number;
+import { useEffect } from 'react';
+import useSWR, { KeyedMutator } from 'swr'; // Import KeyedMutator for proper typing
+import { getPosts, PostFilters } from '@/lib/api/posts';
+
+interface Post {
+  id: string;
+  title: string;
+  slug?: string;
+  status: 'published' | 'draft';
+  content?: string;
+  contentHtml?: string;
+  excerpt?: string;
+  publishedAt?: string;
+  updatedAt: string;
+  views?: number;
+  tags?: string[];
 }
 
-interface UsePostsResult {
+export interface PostsData {
+  posts: Post[];
+  total: number;
+  totalPages: number;
+  currentPage: number;
+}
+
+export type UsePostsParams = PostFilters;
+
+export interface UsePostsResult {
   posts: Post[];
   totalPosts: number;
   totalPages: number;
+  currentPage: number;
   isLoading: boolean;
-  error: string | null;
+  error: Error | undefined;
+  mutate: KeyedMutator<PostsData>; // Use SWR's KeyedMutator type
 }
 
 /**
@@ -22,91 +42,57 @@ interface UsePostsResult {
  */
 export default function usePosts({
   page = 1,
-  status = 'all',
-  sort = 'newest',
-  search = '',
   limit = 10,
-}: UsePostsOptions): UsePostsResult {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [totalPosts, setTotalPosts] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
+  search = '',
+  status = 'all',
+  sort = 'newest'
+}: UsePostsParams = {}): UsePostsResult {
+  
+  const queryParams = new URLSearchParams();
+  
+  // Add parameters to query string for the SWR cache key
+  queryParams.set('page', page.toString());
+  queryParams.set('limit', limit.toString());
+  
+  if (search) {
+    queryParams.set('search', search);
+  }
+  
+  if (status && status !== 'all') {
+    queryParams.set('status', status);
+  }
+  
+  if (sort && sort !== 'newest') {
+    queryParams.set('sort', sort);
+  }
+  
+  // This is used as the cache key for SWR
+  const queryKey = `/api/posts?${queryParams.toString()}`;
+  
+  // Prepare the filter object for getPosts
+  const filters: PostFilters = { page, limit, search, status, sort };
+  
+  const { data, error, isLoading, mutate } = useSWR<PostsData>(
+    queryKey,
+    () => getPosts(filters),
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000, // 1 minute
+    }
+  );
+  
+  // Handle automatic refetching when params change
   useEffect(() => {
-    async function fetchPosts() {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        // In a real app, you would pass these parameters to your API
-        const allPosts = await getPosts();
-        let filteredPosts = [...allPosts];
-
-        // Apply status filter
-        if (status && status !== 'all') {
-          filteredPosts = filteredPosts.filter((post) => post.status === status);
-        }
-
-        // Apply search filter
-        if (search) {
-          const searchLower = search.toLowerCase();
-          filteredPosts = filteredPosts.filter(
-            (post) =>
-              post.title.toLowerCase().includes(searchLower) ||
-              (post.excerpt && post.excerpt.toLowerCase().includes(searchLower)) ||
-              (post.tags && post.tags.some(tag => tag.toLowerCase().includes(searchLower)))
-          );
-        }
-
-        // Apply sorting
-        filteredPosts = sortPosts(filteredPosts, sort);
-
-        // Calculate pagination
-        const total = filteredPosts.length;
-        const pages = Math.max(1, Math.ceil(total / limit));
-
-        // Apply pagination
-        const startIndex = (page - 1) * limit;
-        const paginatedPosts = filteredPosts.slice(startIndex, startIndex + limit);
-
-        setPosts(paginatedPosts);
-        setTotalPosts(total);
-        setTotalPages(pages);
-      } catch (err) {
-        console.error('Error fetching posts:', err);
-        setError('Failed to fetch posts. Please try again.');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchPosts();
-  }, [page, status, sort, search, limit]);
-
-  return { posts, totalPosts, totalPages, isLoading, error };
-}
-
-/**
- * Helper function to sort posts based on sort option
- */
-function sortPosts(posts: Post[], sortOption: string): Post[] {
-  return [...posts].sort((a, b) => {
-    switch (sortOption) {
-      case 'newest':
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      case 'oldest':
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-      case 'updated':
-        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-      case 'title-asc':
-        return a.title.localeCompare(b.title);
-      case 'title-desc':
-        return b.title.localeCompare(a.title);
-      case 'most-viewed':
-        return (b.views || 0) - (a.views || 0);
-      default:
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    }
-  });
+    mutate();
+  }, [page, limit, search, status, sort, mutate]);
+  
+  return {
+    posts: data?.posts || [],
+    totalPosts: data?.total || 0,
+    totalPages: data?.totalPages || 0,
+    currentPage: data?.currentPage || page,
+    isLoading,
+    error,
+    mutate, // Pass the mutate function as is
+  };
 }
