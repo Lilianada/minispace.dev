@@ -7,5 +7,9 @@ export const metadata: Metadata = {
 };
 
 export default function PostsPage() {
-  return <PostsList />;
+  return (
+    <div className="mx-auto">
+      <PostsList />
+    </div>
+  );
 }

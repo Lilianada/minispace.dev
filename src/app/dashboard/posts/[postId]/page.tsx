@@ -32,5 +32,9 @@ export default async function PostPage({ params }: PostPageProps) {
     notFound();
   }
   
-  return <PostDetailView post={post} />;
+  return (
+    <div className=" mx-auto">
+      <PostDetailView post={post} />
+    </div>
+  );
 }
