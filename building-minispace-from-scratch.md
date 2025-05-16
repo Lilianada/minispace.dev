@@ -887,7 +887,7 @@ body {
 }
 
 .prose p {
-  margin-bottom: 1.25rem;
+  margin-bottom: .75rem;
 }
 
 .prose ul, .prose ol {

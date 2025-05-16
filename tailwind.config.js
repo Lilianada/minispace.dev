@@ -15,7 +15,7 @@ module.exports = {
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      
       screens: {
         "2xl": "1400px",
       },
@@ -80,30 +80,71 @@ module.exports = {
       },
       fontFamily: {
         sans: [
-          '-apple-system',
-          'BlinkMacSystemFont',
+          "-apple-system",
+          "BlinkMacSystemFont",
           '"Segoe UI"',
-          'Roboto',
-          'Oxygen',
-          'Ubuntu',
-          'Cantarell',
+          "Roboto",
+          "Oxygen",
+          "Ubuntu",
+          "Cantarell",
           '"Fira Sans"',
           '"Droid Sans"',
           '"Helvetica Neue"',
-          'sans-serif',
+          "sans-serif",
         ],
         mono: [
-          'ui-monospace',
-          'SFMono-Regular',
-          'Menlo',
-          'Monaco',
-          'Consolas',
+          "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "Monaco",
+          "Consolas",
           '"Liberation Mono"',
           '"Courier New"',
-          'monospace',
+          "monospace",
         ],
+      },
+      typography: {
+        DEFAULT: {
+          css: {
+            maxWidth: "100%",
+            color: "var(--tw-prose-body)",
+            a: {
+              color: "var(--tw-prose-links)",
+              "&:hover": {
+                textDecoration: "underline",
+              },
+            },
+            p: {
+              marginTop: "0em",
+              marginBottom: ".25em",
+            },
+            code: {
+              color: "var(--tw-prose-code)",
+              backgroundColor: "var(--tw-prose-code-bg)",
+              padding: "0.2em 0.4em",
+              borderRadius: "0.25rem",
+              fontWeight: "400",
+            },
+            "code::before": {
+              content: '""',
+            },
+            "code::after": {
+              content: '""',
+            },
+            pre: {
+              backgroundColor: "var(--tw-prose-pre-bg)",
+              padding: "1em",
+              borderRadius: "0.25rem",
+              overflow: "auto",
+            },
+            "pre code": {
+              backgroundColor: "transparent",
+              padding: "0",
+            },
+          },
+        },
       },
     },
   },
-  plugins: [require("tailwindcss-animate")], 
+  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
 };
