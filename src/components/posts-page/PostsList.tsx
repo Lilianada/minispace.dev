@@ -1,146 +1,239 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { getPosts, Post, PostFilters } from '@/lib/api/posts';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Loader } from '@/components/ui/loader';
-import PostFilters from './PostFilters';
-import PostListHeader from './PostListHeader';
-import PostListTable from './PostListTable';
-import PostPagination from './PostPagination';
-import usePosts from '@/hooks/usePosts';
+import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
+import PostsFilters from './PostFilters';
+import PostItem from './PostItem';
+import Pagination from '../ui/pagination';
+import { getDashboardPath } from '@/lib/route-utils';
 
 export default function PostsList() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
+  const { toast } = useToast();
+  
   // Get query parameters for filtering/sorting
-  const currentPage = Number(searchParams.get('page') || '1');
+  const page = Number(searchParams.get('page') || '1');
   const status = searchParams.get('status') || 'all';
   const sort = searchParams.get('sort') || 'newest';
-  const searchQuery = searchParams.get('q') || '';
-
-  // Component state
-  const [search, setSearch] = useState(searchQuery);
+  const search = searchParams.get('search') || '';
   
-  // Custom hook to fetch posts with filters
-  const { posts, totalPages, isLoading, error, mutate } = usePosts({
-    page: currentPage,
-    status,
-    sort,
-    search: searchQuery,
-  });
-
-  // Handle search input
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const params = new URLSearchParams(searchParams);
-    if (search) {
-      params.set('q', search);
-    } else {
-      params.delete('q');
-    }
-    params.set('page', '1'); // Reset to first page on new search
-    router.push(`/dashboard/posts?${params.toString()}`);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(page);
+  const [totalPosts, setTotalPosts] = useState(0);
+  
+  // Helper functions for username-based navigation
+  const getPostsUrl = (params: URLSearchParams) => {
+    const basePath = getDashboardPath('posts');
+    return `${basePath}?${params.toString()}`;
   };
-
-  // Handle filter/sort changes
-  const handleFilterChange = (newStatus: string, newSort: string) => {
-    const params = new URLSearchParams(searchParams);
-    if (newStatus !== 'all') {
-      params.set('status', newStatus);
-    } else {
-      params.delete('status');
+  
+  const getNewPostUrl = () => {
+    return getDashboardPath('posts/new-post');
+  };
+  
+  // Load posts when parameters change
+  useEffect(() => {
+    async function fetchPosts() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        console.log('Fetching posts with filters:', { page, status, sort, search });
+        
+        const result = await getPosts({
+          page,
+          limit: 10,
+          status,
+          sort,
+          search
+        });
+        
+        // Check for API-level errors that were converted to normal responses
+        if (result.error || result.status === 'error') {
+          setError(result.error || 'There was a problem loading your posts');
+          setPosts([]);
+        } else {
+          setPosts(result.posts || []);
+        }
+        
+        setTotalPages(result.totalPages || 1);
+        setCurrentPage(result.currentPage || page);
+        setTotalPosts(result.total || 0);
+      } catch (err) {
+        console.error('Error fetching posts:', err);
+        setError('Failed to load posts. Please try again.');
+        setPosts([]);
+        toast({
+          title: 'Error',
+          description: 'Failed to load posts',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
     }
     
-    if (newSort !== 'newest') {
-      params.set('sort', newSort);
-    } else {
-      params.delete('sort');
-    }
-    
-    params.set('page', '1'); // Reset to first page on filter change
-    router.push(`/dashboard/posts?${params.toString()}`);
-  };
-
-  // Handle pagination
+    fetchPosts();
+  }, [page, status, sort, search, toast]);
+  
+  // Handle page change
   const handlePageChange = (newPage: number) => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams.toString());
     params.set('page', newPage.toString());
-    router.push(`/dashboard/posts?${params.toString()}`);
+    router.push(getPostsUrl(params));
   };
-
+  
+  // Handle status filter change
+  const handleStatusChange = (newStatus: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('status', newStatus);
+    params.delete('page'); // Reset page when changing filters
+    router.push(getPostsUrl(params));
+  };
+  
+  // Handle sort change
+  const handleSortChange = (newSort: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('sort', newSort);
+    params.delete('page'); // Reset page when changing filters
+    router.push(getPostsUrl(params));
+  };
+  
+  // Handle search
+  const handleSearch = (searchQuery: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (searchQuery) {
+      params.set('search', searchQuery);
+    } else {
+      params.delete('search');
+    }
+    params.delete('page'); // Reset page when searching
+    router.push(getPostsUrl(params));
+  };
+  
+  // Render loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center mb-6">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-10 w-32" />
+        </div>
+        
+        <div className="flex gap-4 mb-6">
+          <Skeleton className="h-10 w-24" />
+          <Skeleton className="h-10 w-24" />
+          <Skeleton className="h-10 w-24" />
+          <Skeleton className="ml-auto h-10 w-64" />
+        </div>
+        
+        {Array(3).fill(0).map((_, i) => (
+          <Card key={i} className="p-4 mb-4">
+            <Skeleton className="h-7 w-3/4 mb-2" />
+            <Skeleton className="h-4 w-1/2 mb-4" />
+            <div className="flex justify-between">
+              <Skeleton className="h-4 w-1/4" />
+              <Skeleton className="h-8 w-20" />
+            </div>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+  
+  // Render error state
+  if (error) {
+    return (
+      <div className="text-center py-10 border border-dashed rounded-md p-6">
+        <h3 className="text-lg font-medium mb-2">Cannot load posts</h3>
+        <p className="text-muted-foreground mb-6">
+          {error.includes('credentials') || error.includes('authentication') 
+            ? 'There is a database connection issue. Please try again later or contact support.'
+            : error}
+        </p>
+        <div className="flex justify-center gap-4">
+          <Button onClick={() => router.refresh()}>
+            Refresh
+          </Button>
+          <Button variant="outline" onClick={() => router.push(getNewPostUrl())}>
+            Create New Post
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="space-y-6">
-      <PostListHeader />
-
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex flex-col sm:flex-row justify-between gap-4">
-            <form onSubmit={handleSearch} className="flex-1">
-              <Input
-                placeholder="Search posts..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="max-w-sm"
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">My Posts</h1>
+        <Button onClick={() => router.push(getNewPostUrl())}>
+          Create New Post
+        </Button>
+      </div>
+      
+      <PostsFilters 
+        currentStatus={status} 
+        currentSort={sort}
+        searchQuery={search}
+        onStatusChange={handleStatusChange}
+        onSortChange={handleSortChange}
+        onSearch={handleSearch}
+      />
+      
+      {!posts || posts.length === 0 ? (
+        <div className="text-center py-10 border border-dashed rounded-md">
+          <h3 className="text-lg font-medium mb-2">No posts found</h3>
+          <p className="text-muted-foreground mb-6">
+            {search 
+              ? `No posts match the search "${search}"`
+              : status !== 'all' 
+                ? `You don't have any ${status} posts yet`
+                : error
+                  ? "Unable to load posts due to a technical issue"
+                  : "You haven't created any posts yet"}
+          </p>
+          <Button onClick={() => router.push(getNewPostUrl())}>
+            Create Your First Post
+          </Button>
+        </div>
+      ) : (
+        <>
+          <div className="space-y-4">
+            {posts.map((post) => (
+              <PostItem 
+                key={post.id} 
+                post={post} 
+                onRefresh={() => {
+                  // Trigger a re-fetch
+                  router.refresh();
+                }}
               />
-            </form>
-            <PostFilters 
-              currentStatus={status} 
-              currentSort={sort}
-              onFilterChange={handleFilterChange}
-            />
+            ))}
           </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <Loader size="lg" />
-            </div>
-          ) : error ? (
-            <div className="text-center py-8 text-destructive">
-              <p>Error loading posts: {error.message}</p>
-              <Button 
-                variant="outline" 
-                onClick={() => router.refresh()} 
-                className="mt-4"
-              >
-                Try Again
-              </Button>
-            </div>
-          ) : posts.length === 0 ? (
-            <div className="text-center py-12">
-              <h3 className="text-lg font-medium mb-2">No posts found</h3>
-              <p className="text-muted-foreground mb-6">
-                {searchQuery 
-                  ? "No posts match your search criteria. Try different keywords or filters." 
-                  : "You haven't created any posts yet. Start writing your first post!"}
-              </p>
-              <Button asChild>
-                <Link href="/dashboard/posts/new-post">Create your first post</Link>
-              </Button>
-            </div>
-          ) : (
-            <>
-              <PostListTable 
-                posts={posts} 
-                mutate={mutate} 
-              />
-              
-              {totalPages > 1 && (
-                <PostPagination 
-                  currentPage={currentPage} 
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                />
-              )}
-            </>
+          
+          {totalPages > 1 && (
+            <Pagination 
+              currentPage={currentPage} 
+              totalPages={totalPages} 
+              onPageChange={handlePageChange} 
+            />
           )}
-        </CardContent>
-      </Card>
+          
+          <p className="text-sm text-muted-foreground text-center">
+            Showing {posts.length} of {totalPosts} posts
+          </p>
+        </>
+      )}
     </div>
   );
 }

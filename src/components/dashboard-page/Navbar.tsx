@@ -1,13 +1,30 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
+import { getDashboardPath } from '@/lib/route-utils';
 
 export default function Navbar() {
   const { user, userData, logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [dashboardUrl, setDashboardUrl] = useState('/signin?redirect=dashboard');
+  
+  useEffect(() => {
+    // Get the username-based dashboard URL
+    if (userData && userData.username) {
+      setDashboardUrl(`/${userData.username}/dashboard`);
+    } else if (typeof window !== 'undefined') {
+      const username = localStorage.getItem('username');
+      if (username) {
+        setDashboardUrl(`/${username}/dashboard`);
+      } else {
+        // If no username is available, redirect to login
+        setDashboardUrl('/signin?redirect=dashboard');
+      }
+    }
+  }, [userData]);
 
   const handleLogout = async () => {
     try {
@@ -23,7 +40,7 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           {/* Left: Logo (mobile only) */}
           <div className="flex items-center md:hidden">
-            <Link href="/dashboard" className="flex-shrink-0 flex items-center">
+            <Link href={dashboardUrl} className="flex-shrink-0 flex items-center">
               <span className="text-xl font-medium text-primary">Minispace</span>
             </Link>
           </div>
@@ -98,14 +115,14 @@ export default function Navbar() {
                       </div>
                       <hr className="border-border" />
                       <Link 
-                        href="/dashboard/profile" 
+                        href={`${dashboardUrl}/profile`} 
                         className="block px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground"
                         onClick={() => setIsDropdownOpen(false)}
                       >
                         Your Profile
                       </Link>
                       <Link 
-                        href="/dashboard/settings" 
+                        href={`${dashboardUrl}/settings`} 
                         className="block px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground"
                         onClick={() => setIsDropdownOpen(false)}
                       >
@@ -134,7 +151,7 @@ export default function Navbar() {
         <div className="md:hidden border-t border-border">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <Link 
-              href="/dashboard/new-post"
+              href={`${dashboardUrl}/new-post`}
               className="block px-3 py-2 rounded-md text-base font-medium text-foreground hover:bg-accent hover:text-accent-foreground"
               onClick={() => setIsMobileMenuOpen(false)}
             >
@@ -161,14 +178,14 @@ export default function Navbar() {
             </div>
             <div className="mt-3 px-2 space-y-1">
               <Link 
-                href="/dashboard/profile"
+                href={`${dashboardUrl}/profile`}
                 className="block px-3 py-2 rounded-md text-base font-medium text-foreground hover:bg-accent hover:text-accent-foreground"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Your Profile
               </Link>
               <Link 
-                href="/dashboard/settings"
+                href={`${dashboardUrl}/settings`}
                 className="block px-3 py-2 rounded-md text-base font-medium text-foreground hover:bg-accent hover:text-accent-foreground"
                 onClick={() => setIsMobileMenuOpen(false)}
               >

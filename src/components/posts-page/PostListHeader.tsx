@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { getDashboardPath } from '@/lib/route-utils';
 
 export default function PostListHeader() {
   return (
@@ -11,7 +12,7 @@ export default function PostListHeader() {
         </p>
       </div>
       <Button asChild>
-        <Link href="/dashboard/posts/new-post" className="shrink-0">
+        <Link href={getDashboardPath('posts/new-post')} className="shrink-0">
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
             viewBox="0 0 20 20" 

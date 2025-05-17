@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/auth-context';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { getDashboardPath } from '@/lib/route-utils';
 
 export default function WelcomeSection() {
   const { userData } = useAuth();
@@ -22,16 +23,18 @@ export default function WelcomeSection() {
     greeting = 'Good evening';
   }
 
+  const username = userData?.username
+
   return (
     <div className="bg-primary/5 rounded-lg border border-primary/20 p-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground capitalize">{greeting}, {userData?.username || 'there'}</h1>
+          <h1 className="text-2xl font-bold text-foreground capitalize">{greeting}, {username || 'there'}</h1>
           <p className="mt-1 text-muted-foreground">
             Here's an overview of your blog's performance and recent activity
           </p>
         </div>
-        <Link href="/dashboard/new-post">
+        <Link href={getDashboardPath('posts/new-post')}>
           <Button className="flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

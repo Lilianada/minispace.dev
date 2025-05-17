@@ -13,6 +13,7 @@ import {
 import { updatePostStatus } from '@/lib/api/posts';
 import { KeyedMutator } from 'swr';
 import { PostsData } from '@/hooks/usePosts';
+import { getDashboardPath } from '@/lib/route-utils';
 
 interface Post {
   id: string;
@@ -89,7 +90,7 @@ export default function PostActionsDropdown({
       <DropdownMenuContent align="end">
         <DropdownMenuItem 
           className="cursor-pointer"
-          onClick={() => router.push(`/dashboard/posts/${post.id}/review`)}
+          onClick={() => router.push(getDashboardPath(`posts/${post.id}/review`))}
         >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
@@ -104,7 +105,7 @@ export default function PostActionsDropdown({
         </DropdownMenuItem>
         <DropdownMenuItem 
           className="cursor-pointer"
-          onClick={() => router.push(`/dashboard/posts/${post.id}/edit`)}
+          onClick={() => router.push(getDashboardPath(`posts/${post.id}/edit`))}
         >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 

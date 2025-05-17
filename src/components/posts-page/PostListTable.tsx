@@ -17,9 +17,38 @@ interface Post {
 interface PostListTableProps {
   posts: Post[];
   mutate: KeyedMutator<PostsData>;
+  error?: string;
+  status?: string;
 }
 
-export default function PostListTable({ posts, mutate }: PostListTableProps) {
+export default function PostListTable({ posts, mutate, error, status }: PostListTableProps) {
+  // Show a helpful message if there are no posts or there was an error
+  if (status === 'error' || error) {
+    return (
+      <div className="border rounded-md p-8 text-center">
+        <h3 className="text-lg font-medium mb-2">Unable to load posts</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          {error || "There was a problem connecting to the database."}
+        </p>
+        <p className="text-sm text-muted-foreground">
+          You can try refreshing the page or checking your connection.
+        </p>
+      </div>
+    );
+  }
+  
+  // Show empty state message when no posts
+  if (!posts || posts.length === 0) {
+    return (
+      <div className="border rounded-md p-8 text-center">
+        <h3 className="text-lg font-medium mb-2">No posts yet</h3>
+        <p className="text-sm text-muted-foreground">
+          Create your first post to get started.
+        </p>
+      </div>
+    );
+  }
+  
   return (
     <div className="rounded-md border">
       <div className="relative w-full overflow-auto">

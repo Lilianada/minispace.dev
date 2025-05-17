@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { getDashboardPath } from '@/lib/route-utils';
 import DeletePostDialog from './DeletePostDialog';
 import { Post } from '@/lib/api/posts';
 
@@ -87,7 +88,7 @@ export default function PostActions({ post }: PostActionsProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => router.push(`/dashboard/posts/${post.id}/edit`)}>
+          <DropdownMenuItem onClick={() => router.push(getDashboardPath(`posts/${post.id}/edit`))}>
             Edit
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => {

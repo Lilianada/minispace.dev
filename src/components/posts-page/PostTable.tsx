@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { getDashboardPath } from '@/lib/route-utils';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -116,7 +117,7 @@ export default function PostsTable({ posts }: PostsTableProps) {
               <TableRow key={post.id}>
                 <TableCell className="font-medium">
                   <Link 
-                    href={`/dashboard/posts/${post.id}`}
+                    href={getDashboardPath(`posts/${post.id}`)}
                     className="hover:underline hover:text-primary"
                   >
                     {post.title}
@@ -155,12 +156,12 @@ export default function PostsTable({ posts }: PostsTableProps) {
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/posts/${post.id}`}>
+                        <Link href={getDashboardPath(`posts/${post.id}`)}>
                           View Post
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/posts/${post.id}/edit`}>
+                        <Link href={getDashboardPath(`posts/${post.id}/edit`)}>
                           Edit Post
                         </Link>
                       </DropdownMenuItem>

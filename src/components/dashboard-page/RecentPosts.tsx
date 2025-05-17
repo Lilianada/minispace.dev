@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader } from '@/components/ui/loader';
 import { formatDate } from '@/lib/utils';
+import { getDashboardPath } from '@/lib/route-utils';
 
 interface Post {
   id: string;
@@ -77,7 +78,7 @@ export default function RecentPosts() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle>Recent Posts</CardTitle>
-        <Link href="/dashboard/posts">
+        <Link href={getDashboardPath('posts')}>
           <Button variant="outline" size="sm">
             View all posts
           </Button>
@@ -107,7 +108,7 @@ export default function RecentPosts() {
                 {posts.map((post) => (
                   <tr key={post.id} className="border-b border-border/50 last:border-0">
                     <td className="py-3 pr-4">
-                      <Link href={`/dashboard/posts/${post.id}`} className="hover:text-primary hover:underline font-medium">
+                      <Link href={getDashboardPath(`posts/${post.id}`)} className="hover:text-primary hover:underline font-medium">
                         {post.title}
                       </Link>
                     </td>

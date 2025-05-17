@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { updatePostStatus } from '@/lib/api/posts';
 import { Loader } from '@/components/ui/loader';
+import { getDashboardPath } from '@/lib/route-utils';
 
 interface Post {
   id: string;
@@ -45,7 +46,7 @@ export default function PostReviewHeader({ post }: PostReviewHeaderProps) {
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b">
       <div>
         <div className="flex items-center gap-2 mb-2">
-          <Link href="/dashboard/posts" className="text-muted-foreground hover:text-foreground">
+          <Link href={getDashboardPath('posts')} className="text-muted-foreground hover:text-foreground">
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
               viewBox="0 0 20 20" 
@@ -67,7 +68,7 @@ export default function PostReviewHeader({ post }: PostReviewHeaderProps) {
       
       <div className="flex gap-3">
         <Button variant="outline" asChild>
-          <Link href={`/dashboard/posts/${post.id}/edit`}>
+          <Link href={getDashboardPath(`posts/${post.id}/edit`)}>
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
               viewBox="0 0 20 20" 

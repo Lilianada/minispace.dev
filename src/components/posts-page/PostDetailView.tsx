@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils';
+import { getDashboardPath } from '@/lib/route-utils';
 import PostStats from './PostStats';
 import PostActions from './PostActions';
 
@@ -42,7 +43,7 @@ export default function PostDetailView({ post }: PostDetailViewProps) {
         </div>
         <div className="flex space-x-2">
           <Button asChild variant="outline" className="hover:bg-accent hover:text-accent-foreground">
-            <Link href={`/dashboard/posts/${post.id}/edit`}>Edit Post</Link>
+            <Link href={getDashboardPath(`posts/${post.id}/edit`)}>Edit Post</Link>
           </Button>
           <PostActions post={post} />
         </div>

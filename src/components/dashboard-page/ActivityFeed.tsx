@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Loader } from '@/components/ui/loader';
+import { getDashboardPath } from '@/lib/route-utils';
 
 interface Activity {
   id: string;
@@ -35,7 +36,7 @@ export default function ActivityFeed() {
             type: 'comment',
             content: 'New comment on',
             target: 'Getting Started with Minispace',
-            targetUrl: '/dashboard/posts/1',
+            targetUrl: getDashboardPath('posts/1'),
             time: '5 minutes ago'
           },
           {
@@ -43,7 +44,7 @@ export default function ActivityFeed() {
             type: 'view',
             content: 'Someone viewed',
             target: 'Best Practices for Blog SEO',
-            targetUrl: '/dashboard/posts/2',
+            targetUrl: getDashboardPath('posts/2'),
             time: '1 hour ago'
           },
           {

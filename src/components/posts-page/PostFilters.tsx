@@ -1,3 +1,7 @@
+'use client';
+
+import { useState } from 'react';
+import { Search } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -5,52 +9,77 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
-interface PostFiltersProps {
+interface PostsFiltersProps {
   currentStatus: string;
   currentSort: string;
-  onFilterChange: (status: string, sort: string) => void;
+  searchQuery: string;
+  onStatusChange: (status: string) => void;
+  onSortChange: (sort: string) => void;
+  onSearch: (query: string) => void;
 }
 
-export default function PostFilters({
+export default function PostsFilters({
   currentStatus,
   currentSort,
-  onFilterChange,
-}: PostFiltersProps) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {/* Status filter */}
-      <Select
-        value={currentStatus}
-        onValueChange={(value) => onFilterChange(value, currentSort)}
-      >
-        <SelectTrigger className="w-[140px]">
-          <SelectValue placeholder="Status" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Posts</SelectItem>
-          <SelectItem value="published">Published</SelectItem>
-          <SelectItem value="draft">Drafts</SelectItem>
-        </SelectContent>
-      </Select>
+  searchQuery,
+  onStatusChange,
+  onSortChange,
+  onSearch,
+}: PostsFiltersProps) {
+  const [searchInput, setSearchInput] = useState(searchQuery);
 
-      {/* Sort options */}
-      <Select
-        value={currentSort}
-        onValueChange={(value) => onFilterChange(currentStatus, value)}
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSearch(searchInput);
+  };
+
+  return (
+    <div className="flex flex-col sm:flex-row gap-3 items-center">
+      <div className="flex gap-3 w-full sm:w-auto">
+        <Select value={currentStatus} onValueChange={onStatusChange}>
+          <SelectTrigger className="w-[110px]">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="published">Published</SelectItem>
+            <SelectItem value="draft">Drafts</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={currentSort} onValueChange={onSortChange}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="Sort" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">Newest</SelectItem>
+            <SelectItem value="oldest">Oldest</SelectItem>
+            <SelectItem value="a-z">A-Z</SelectItem>
+            <SelectItem value="z-a">Z-A</SelectItem>
+            <SelectItem value="most-viewed">Most Viewed</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <form
+        onSubmit={handleSearch}
+        className="flex gap-2 w-full sm:w-auto sm:ml-auto"
       >
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Sort by" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="newest">Newest First</SelectItem>
-          <SelectItem value="oldest">Oldest First</SelectItem>
-          <SelectItem value="updated">Recently Updated</SelectItem>
-          <SelectItem value="title-asc">Title (A-Z)</SelectItem>
-          <SelectItem value="title-desc">Title (Z-A)</SelectItem>
-          <SelectItem value="most-viewed">Most Viewed</SelectItem>
-        </SelectContent>
-      </Select>
+        <div className="relative w-full">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search posts..."
+            className="w-full pl-9"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
+        </div>
+        <Button type="submit">Search</Button>
+      </form>
     </div>
   );
 }

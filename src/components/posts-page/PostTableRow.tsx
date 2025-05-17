@@ -5,6 +5,7 @@ import Link from "next/link";
 import { KeyedMutator } from "swr";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
+import { getDashboardPath } from "@/lib/route-utils";
 import PostActionsDropdown from "./PostActionsDropdown";
 import DeletePostDialog from "./DeletePostDialog";
 import { PostsData } from "@/hooks/usePosts";
@@ -35,7 +36,7 @@ export default function PostTableRow({
       <td className="p-4 align-middle">
         <div>
           <Link
-            href={`/dashboard/posts/${post.id}`}
+            href={getDashboardPath(`posts/${post.id}`)}
             className="font-medium text-foreground hover:underline"
           >
             {post.title}

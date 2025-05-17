@@ -1,20 +1,12 @@
 import { useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { 
-  Card, 
-  CardContent
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator
-} from '@/components/ui/dropdown-menu';
-import DeletePostDialog from './DeletePostDialog';
+import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
+import { getDashboardPath } from '@/lib/route-utils';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import DeletePostDialog from './DeletePostDialog';
 
 interface PostCardProps {
   post: {
@@ -63,7 +55,7 @@ export default function PostCard({ post }: PostCardProps) {
               </span>
             </div>
             <Link 
-              href={`/dashboard/posts/${post.id}`}
+              href={getDashboardPath(`posts/${post.id}`)}
               className="hover:underline"
             >
               <h3 className="text-lg font-semibold mb-2">{post.title}</h3>
@@ -113,7 +105,7 @@ export default function PostCard({ post }: PostCardProps) {
               className="w-full hover:bg-accent hover:text-accent-foreground" 
               asChild
             >
-              <Link href={post.slug ? `/preview/${post.slug}` : `/dashboard/posts/${post.id}`}>
+              <Link href={post.slug ? `/preview/${post.slug}` : getDashboardPath(`posts/${post.id}`)}>
                 Preview
               </Link>
             </Button>
@@ -123,7 +115,7 @@ export default function PostCard({ post }: PostCardProps) {
               className="w-full hover:bg-primary/90" 
               asChild
             >
-              <Link href={`/dashboard/posts/${post.id}/edit`}>
+              <Link href={getDashboardPath(`posts/${post.id}/edit`)}>
                 Edit
               </Link>
             </Button>
@@ -153,8 +145,8 @@ export default function PostCard({ post }: PostCardProps) {
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => post.status === 'published' 
-                    ? router.push(`/dashboard/posts/${post.id}/unpublish`) 
-                    : router.push(`/dashboard/posts/${post.id}/publish`)
+                    ? router.push(getDashboardPath(`posts/${post.id}/unpublish`)) 
+                    : router.push(getDashboardPath(`posts/${post.id}/publish`))
                   }
                 >
                   {post.status === 'published' ? 'Unpublish' : 'Publish'}

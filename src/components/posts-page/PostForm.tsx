@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,7 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import PostEditor from './PostEditor';
 import PostMetadataForm from './PostMetadataForm';
-import { createPost, updatePost } from '@/lib/api/posts';
+import { getDashboardPath } from '@/lib/route-utils';
+import { getDashboardUrl } from '@/lib/route-utils';
 
 // Form validation schema
 const postFormSchema = z.object({
@@ -48,40 +49,103 @@ export default function PostForm({ initialData, isEditing = false }: PostFormPro
     },
   });
 
-  async function onSubmit(data: PostFormValues) {
+  // Add debug logging
+  useEffect(() => {
+    console.log("PostForm initialized with:", { 
+      isEditing, 
+      initialDataId: initialData?.id,
+      hasTitle: !!initialData?.title
+    });
+  }, [isEditing, initialData]);
+
+  // In the onSubmit function, ensure we're sending the correct data structure
+  const onSubmit = async (data: z.infer<typeof postFormSchema>) => {
     try {
+      console.log("Form submitted with values:", {
+        title: data.title,
+        contentLength: data.content?.length || 0,
+        excerptLength: data.excerpt?.length || 0,
+        tagsCount: data.tags?.length || 0,
+        slug: data.slug
+      });
+      
       setIsSubmitting(true);
       
-      if (isEditing && initialData?.id) {
-        // Update existing post
-        await updatePost(initialData.id, data);
+      // Ensure required fields are present
+      if (!data.title) {
         toast({
-          title: 'Success',
-          description: 'Your post has been updated',
+          title: 'Error',
+          description: 'Title is required',
+          variant: 'destructive',
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Log what we're sending for debugging
+      console.log('Submitting post data:', data);
+      
+      let response;
+      if (isEditing && initialData?.id) {
+        response = await fetch(`/api/posts/${initialData.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title: data.title,
+            content: data.content,
+            excerpt: data.excerpt,
+            tags: data.tags,
+            slug: data.slug,
+          }),
         });
       } else {
-        // Create new post
-        await createPost(data);
-        toast({
-          title: 'Success',
-          description: 'Your post has been created',
+        response = await fetch('/api/posts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title: data.title,
+            content: data.content,
+            excerpt: data.excerpt,
+            tags: data.tags,
+            status: 'draft',
+          }),
         });
       }
       
-      // Redirect to posts list
-      router.push('/dashboard/posts');
-      router.refresh();
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || errorData.message || 'Failed to save post');
+      }
+      
+      const responseData = await response.json();
+      console.log('API response:', responseData);
+      
+      toast({
+        title: 'Success',
+        description: isEditing ? 'Post updated successfully' : 'Post created successfully',
+        variant: 'success',
+      });
+      
+      setTimeout(() => {
+        // Use the improved getDashboardPath function for proper subpath handling
+        const postsUrl = getDashboardPath('posts');
+        router.push(postsUrl);
+      }, 1000);
     } catch (error) {
       console.error('Error saving post:', error);
       toast({
         title: 'Error',
-        description: 'Failed to save post. Please try again.',
+        description: error instanceof Error ? error.message : 'Failed to save post',
         variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <Form {...form}>
