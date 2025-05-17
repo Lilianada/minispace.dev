@@ -61,17 +61,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(user);
       
       if (user) {
-        // Fetch user data from Firestore
+        // Get a fresh ID token and store it for API calls
         try {
+          const token = await user.getIdToken(true);  // Force refresh the token
+          
+          // Store the token in a secure cookie instead of localStorage
+          // Include SameSite and secure flags for better security
+          document.cookie = `authToken=${token}; path=/; max-age=3600; SameSite=Strict`;
+          localStorage.setItem('authTokenTimestamp', Date.now().toString());
+          console.log('Auth token refreshed and saved to cookie');
+          
+          // Fetch user data from Firestore
           const userDoc = await getDoc(doc(db, "Users", user.uid));
           if (userDoc.exists()) {
-            setUserData(userDoc.data() as UserData);
+            const userData = userDoc.data() as UserData;
+            setUserData(userData);
+            
+            // Store username in localStorage for route access
+            localStorage.setItem('username', userData.username);
           }
         } catch (error) {
-          console.error("Error fetching user data:", error);
+          console.error("Error fetching user data or token:", error);
         }
       } else {
         setUserData(null);
+        // Clear auth token when not logged in
+        document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        localStorage.removeItem('authTokenTimestamp');
+        localStorage.removeItem('username');
       }
       
       setLoading(false);
@@ -80,10 +97,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
+  // Add effect to refresh token periodically
+  useEffect(() => {
+    if (!user) return; // No user to refresh token for
+    
+    // Token refresh interval (40 minutes - before the 60 minute expiration)
+    const REFRESH_INTERVAL = 40 * 60 * 1000;
+    
+    // Function to refresh token
+    const refreshToken = async () => {
+      try {
+        console.log('Refreshing auth token...');
+        const token = await user.getIdToken(true); // Force refresh
+        document.cookie = `authToken=${token}; path=/; max-age=3600; SameSite=Strict`;
+        localStorage.setItem('authTokenTimestamp', Date.now().toString());
+        console.log('Auth token refreshed successfully');
+      } catch (error) {
+        console.error('Failed to refresh token:', error);
+      }
+    };
+    
+    // Set up interval to refresh token
+    const intervalId = setInterval(refreshToken, REFRESH_INTERVAL);
+    
+    // Clear interval on unmount
+    return () => clearInterval(intervalId);
+  }, [user]); // Depend on user object to restart when user changes
+
   // Login function
   const login = async (email: string, password: string) => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Get and store the token for API requests in a secure cookie instead of localStorage
+      const token = await userCredential.user.getIdToken();
+      document.cookie = `authToken=${token}; path=/; max-age=3600; SameSite=Strict`;
+      localStorage.setItem('authTokenTimestamp', Date.now().toString());
+      console.log('Auth token saved to cookie', { tokenLength: token.length });
+      
+      // Get username for the route
+      const userDoc = await getDoc(doc(db, "Users", userCredential.user.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data() as UserData;
+        localStorage.setItem('username', userData.username);
+      }
+      
     } catch (error) {
       const typedError = error as { code?: string; message: string };
       let errorMessage = "Failed to sign in";
@@ -127,6 +185,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
+      // Get and store the token for API requests in a secure cookie
+      const token = await user.getIdToken();
+      document.cookie = `authToken=${token}; path=/; max-age=3600; SameSite=Strict`;
+      localStorage.setItem('authTokenTimestamp', Date.now().toString());
+      localStorage.setItem('username', username.toLowerCase());
+      console.log('Auth token saved to cookie for new user');
+      
       // Create user document in Firestore
       await setDoc(doc(db, "Users", user.uid), {
         username: username.toLowerCase(),
@@ -161,6 +226,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       await signOut(auth);
+      // Clear all auth-related data from localStorage and cookies on logout
+      document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      localStorage.removeItem('authTokenTimestamp');
+      localStorage.removeItem('username');
+      console.log('Auth data removed from localStorage and cookies');
     } catch (error) {
       const typedError = error as { message: string };
       throw new Error(typedError.message || "Failed to log out");

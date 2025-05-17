@@ -23,6 +23,9 @@ export interface PostsData {
   total: number;
   totalPages: number;
   currentPage: number;
+  error?: string;
+  message?: string;
+  status?: string;
 }
 
 export type UsePostsParams = PostFilters;
@@ -33,7 +36,9 @@ export interface UsePostsResult {
   totalPages: number;
   currentPage: number;
   isLoading: boolean;
-  error: Error | undefined;
+  error: Error | undefined | string;
+  errorMessage?: string; 
+  status?: string;
   mutate: KeyedMutator<PostsData>; // Use SWR's KeyedMutator type
 }
 
@@ -92,7 +97,9 @@ export default function usePosts({
     totalPages: data?.totalPages || 0,
     currentPage: data?.currentPage || page,
     isLoading,
-    error,
+    error: error || data?.error,
+    errorMessage: data?.message,
+    status: data?.status || (error ? 'error' : 'success'),
     mutate, // Pass the mutate function as is
   };
 }

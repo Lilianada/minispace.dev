@@ -1,93 +1,193 @@
-import { NextAuthOptions } from "next-auth";
-import { FirestoreAdapter } from "@auth/firebase-adapter";
-import GoogleProvider from "next-auth/providers/google";
-import EmailProvider from "next-auth/providers/email";
-import { cert } from "firebase-admin/app";
-import "next-auth/jwt";
+import { 
+  getAuth, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut,
+  signInWithPopup,
+  GoogleAuthProvider,
+  sendPasswordResetEmail,
+  updateProfile,
+  User,
+  getIdToken,
+} from 'firebase/auth';
+import { app } from './firebase/config';
+import { 
+  getFirestore, 
+  doc, 
+  setDoc, 
+  getDoc, 
+  updateDoc, 
+  serverTimestamp 
+} from 'firebase/firestore';
 
-// Extend the built-in session types
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id?: string;
-      name?: string | null;
-      email?: string | null;
-      image?: string | null;
+// Initialize Firebase Authentication
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+
+// Create a Google provider
+const googleProvider = new GoogleAuthProvider();
+
+// User type
+export interface UserData {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/**
+ * Sign in with email and password
+ */
+export const signIn = async (email: string, password: string) => {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    await updateUserLastLogin(userCredential.user.uid);
+    return userCredential.user;
+  } catch (error) {
+    console.error('Error signing in:', error);
+    throw error;
+  }
+};
+
+/**
+ * Sign up with email and password
+ */
+export const signUp = async (email: string, password: string, displayName?: string) => {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    
+    // Update profile if display name is provided
+    if (displayName) {
+      await updateProfile(userCredential.user, { displayName });
     }
+    
+    // Create user document in Firestore
+    await createUserDocument(userCredential.user);
+    
+    return userCredential.user;
+  } catch (error) {
+    console.error('Error signing up:', error);
+    throw error;
   }
-}
+};
 
-// Extend JWT type
-declare module "next-auth/jwt" {
-  interface JWT {
-    id?: string;
+/**
+ * Sign in with Google
+ */
+export const signInWithGoogle = async () => {
+  try {
+    const userCredential = await signInWithPopup(auth, googleProvider);
+    
+    // Check if user exists in Firestore, create if not
+    const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+    if (!userDoc.exists()) {
+      await createUserDocument(userCredential.user);
+    } else {
+      await updateUserLastLogin(userCredential.user.uid);
+    }
+    
+    return userCredential.user;
+  } catch (error) {
+    console.error('Error signing in with Google:', error);
+    throw error;
   }
-}
+};
 
-// NextAuth configuration options
-export const authOptions: NextAuthOptions = {
-  // Configure one or more authentication providers
-  providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-    }),
-    EmailProvider({
-      server: {
-        host: process.env.EMAIL_SERVER_HOST,
-        port: process.env.EMAIL_SERVER_PORT,
-        auth: {
-          user: process.env.EMAIL_SERVER_USER,
-          pass: process.env.EMAIL_SERVER_PASSWORD,
-        },
-      },
-      from: process.env.EMAIL_FROM,
-    }),
-  ],
+/**
+ * Sign out
+ */
+export const logOut = async () => {
+  try {
+    await signOut(auth);
+  } catch (error) {
+    console.error('Error signing out:', error);
+    throw error;
+  }
+};
+
+/**
+ * Send password reset email
+ */
+export const resetPassword = async (email: string) => {
+  try {
+    await sendPasswordResetEmail(auth, email);
+  } catch (error) {
+    console.error('Error sending password reset email:', error);
+    throw error;
+  }
+};
+
+/**
+ * Create user document in Firestore
+ */
+export const createUserDocument = async (user: User) => {
+  if (!user.uid) return;
   
-  // Use the Firestore adapter to store sessions and users in Firebase
-  adapter: FirestoreAdapter({
-    credential: cert({
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID as string,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL as string,
-      privateKey: (process.env.FIREBASE_PRIVATE_KEY as string).replace(/\\n/g, '\n'),
-    }),
-  }),
+  const userRef = doc(db, 'users', user.uid);
+  const userData = {
+    uid: user.uid,
+    email: user.email,
+    displayName: user.displayName || user.email?.split('@')[0],
+    photoURL: user.photoURL,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    lastLogin: serverTimestamp(),
+  };
   
-  // Session configuration
-  session: {
-    strategy: "jwt",
-  },
+  try {
+    await setDoc(userRef, userData);
+  } catch (error) {
+    console.error('Error creating user document:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update user's last login timestamp
+ */
+export const updateUserLastLogin = async (uid: string) => {
+  try {
+    const userRef = doc(db, 'users', uid);
+    await updateDoc(userRef, {
+      lastLogin: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+  } catch (error) {
+    console.error('Error updating user last login:', error);
+  }
+};
+
+/**
+ * Get user data from Firestore
+ */
+export const getUserData = async (uid: string): Promise<UserData | null> => {
+  try {
+    const userRef = doc(db, 'users', uid);
+    const userDoc = await getDoc(userRef);
+    
+    if (userDoc.exists()) {
+      return userDoc.data() as UserData;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    return null;
+  }
+};
+
+/**
+ * Get ID token for server-side authentication
+ */
+export const getAuthToken = async (user: User | null): Promise<string | null> => {
+  if (!user) return null;
   
-  // Callbacks for customizing the session and JWT
-  callbacks: {
-    async session({ session, user, token }) {
-      // Add user ID to the session
-      if (session.user) {
-        if (token) {
-          // For JWT strategy
-          session.user.id = token.sub as string;
-        } else if (user) {
-          // For database strategy
-          session.user.id = user.id;
-        }
-      }
-      return session;
-    },
-    async jwt({ token, user }) {
-      // When user signs in, add their ID to the token
-      if (user) {
-        token.id = user.id;
-      }
-      return token;
-    },
-  },
-  
-  // Custom pages for authentication flows
-  pages: {
-    signIn: '/auth/signin',
-    signOut: '/auth/signout',
-    error: '/auth/error',
-    verifyRequest: '/auth/verify-request',
-  },
+  try {
+    return await getIdToken(user);
+  } catch (error) {
+    console.error('Error getting auth token:', error);
+    return null;
+  }
 };
