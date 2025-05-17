@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { getPostById, updatePostStatus } from '@/lib/api/posts';
 import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 import { AlertTriangle, Check, Edit, ArrowLeft } from 'lucide-react';
+import { getDashboardPath } from '@/lib/route-utils';
 
 interface ReviewPostPageProps {
   params: {
@@ -83,7 +84,7 @@ export default function ReviewPostPage({ params }: { params: { postId: string } 
         description: 'Post published successfully!',
         variant: 'success',
       });
-      router.push('/dashboard/posts');
+      router.push(getDashboardPath('posts'));
     } catch (error) {
       console.error('Failed to publish post:', error);
       toast({
@@ -97,7 +98,7 @@ export default function ReviewPostPage({ params }: { params: { postId: string } 
   };
 
   const handleEdit = () => {
-    router.push(`/dashboard/posts/${postId}/edit`);
+    router.push(getDashboardPath(`posts/${postId}/edit`));
   };
 
   if (isLoading) {
@@ -119,7 +120,7 @@ export default function ReviewPostPage({ params }: { params: { postId: string } 
         <div className="text-center py-12">
           <h2 className="text-2xl font-bold mb-4">Failed to load post</h2>
           <p className="text-muted-foreground mb-6">{error || "The post couldn't be found"}</p>
-          <Button onClick={() => router.push('/dashboard/posts')}>
+          <Button onClick={() => router.push(getDashboardPath('posts'))}>
             Back to Posts
           </Button>
         </div>
@@ -134,7 +135,7 @@ export default function ReviewPostPage({ params }: { params: { postId: string } 
           <Button 
             variant="outline" 
             size="icon" 
-            onClick={() => router.push('/dashboard/posts')}
+            onClick={() => router.push(getDashboardPath('posts'))}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>

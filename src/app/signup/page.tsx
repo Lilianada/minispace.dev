@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { getDashboardPath } from '@/lib/route-utils';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,7 +26,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function SignUp() {
   const router = useRouter();
-  const { user, signup } = useAuth();
+  const { user, userData, signup } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -38,9 +39,17 @@ export default function SignUp() {
     },
   });
 
-  // Redirect if already signed in
+  // Use useEffect for redirection instead of doing it during render
+  useEffect(() => {
+    if (user && userData) {
+      // Get the username-based dashboard URL
+      const dashboardUrl = getDashboardPath();
+      router.push(dashboardUrl);
+    }
+  }, [user, userData, router]);
+
+  // Show loading screen while redirecting if user is already signed in
   if (user) {
-    router.push('/');
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader />
@@ -54,7 +63,18 @@ export default function SignUp() {
 
     try {
       await signup(data.email, data.username, data.password);
-      router.push('/');
+      
+      // Username should be stored in localStorage during signup
+      const username = localStorage.getItem('username');
+      if (!username) {
+        console.error('Username missing after signup, using fallback');
+        localStorage.setItem('username', data.username.toLowerCase());
+      }
+      
+      // Navigate to the username-based dashboard URL
+      const dashboardUrl = getDashboardPath();
+      console.log(`Redirecting to dashboard after signup: ${dashboardUrl}`);
+      router.push(dashboardUrl);
     } catch (err) {
       console.error('Signup error:', err);
       setError((err as Error).message || 'Failed to create account');

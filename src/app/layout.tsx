@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Providers from "@/components/providers";
 import { Analytics } from "@vercel/analytics/react";
 import { ToastProvider } from "@/components/ui/toast";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/lib/auth-context";
 
 export const metadata: Metadata = {
   title: "Minispace - Minimalist Blogging",
@@ -46,15 +46,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
+        <AuthProvider>
         <ToastProvider>
-          <Providers>
             <TooltipProvider>
               {children}
               <Analytics />
               <Toaster />
             </TooltipProvider>
-          </Providers>
         </ToastProvider>
+        </AuthProvider>
       </body>
     </html>
   );

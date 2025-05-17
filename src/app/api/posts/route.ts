@@ -1,73 +1,150 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from 'next/server';
-import { firestore } from '@/lib/firebase/firestore';
+import { getAuthUser } from '@/lib/firebase/admin';
+import { adminDb } from '@/lib/firebase/admin';
 
-/**
- * GET handler for /api/posts endpoint
- */
 export async function GET(request: Request) {
-  // Get URL to parse search params
-  const { searchParams } = new URL(request.url);
-  
-  // Parse query parameters
-  const page = Number(searchParams.get('page') || '1');
-  const limit = Number(searchParams.get('limit') || '10');
-  const status = searchParams.get('status') || 'all';
-  const sort = searchParams.get('sort') || 'newest';
-  const search = searchParams.get('search') || '';
-  
   try {
-    // Use Firestore to fetch posts
-    const result = await firestore.posts.getAll({
-      page,
-      limit,
-      status,
-      search,
-      sort
+    // Log request headers for debugging
+    console.log('API Request Headers:', {
+      authorization: request.headers.get('authorization') ? 'Present (Bearer token)' : 'Missing',
+      'content-type': request.headers.get('content-type'),
+      host: request.headers.get('host'),
+      origin: request.headers.get('origin'),
     });
     
-    // Return response
-    return NextResponse.json(result);
+    // Get authenticated user
+    const authUser = await getAuthUser(request);
+    
+    if (!authUser) {
+      console.warn('Authentication failed - returning 401');
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+    
+    console.log('User authenticated successfully:', authUser.uid);
+    
+    // Parse URL parameters (simplified)
+    const { searchParams } = new URL(request.url);
+    const page = Number(searchParams.get('page') || '1');
+    const limit = Number(searchParams.get('limit') || '10');
+    
+    // Basic test query to debug
+    try {
+      // Just try to get any documents to confirm Firestore is working
+      const snapshot = await adminDb.collection('posts')
+        .limit(limit)
+        .get();
+      
+      const posts = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      return NextResponse.json({
+        success: true,
+        userId: authUser.uid,
+        posts,
+        pagination: {
+          page,
+          limit,
+          total: posts.length,
+        }
+      });
+    } catch (firestoreError) {
+      console.error('Firestore error:', firestoreError);
+      
+      // Production-ready error handling - report errors but don't expose internals
+      const errorMessage = firestoreError instanceof Error ? firestoreError.message : String(firestoreError);
+      
+      // Log detailed error for server logs but return generic message to client
+      console.error('Detailed Firestore error:', errorMessage);
+      
+      return NextResponse.json({ 
+        success: false,
+        error: 'Database error',
+        message: 'Unable to retrieve posts. Please try again later.',
+        posts: [],
+        pagination: {
+          page,
+          limit,
+          total: 0,
+        }
+      }, { status: 500 });
+    }
   } catch (error) {
-    console.error('Error in /api/posts:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch posts' },
-      { status: 500 }
-    );
+    console.error('API error:', error);
+    
+    // Production error handling - log detailed error but return generic message
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Detailed API error:', errorMessage);
+    
+    return NextResponse.json({ 
+      success: false,
+      error: 'Server error',
+      message: 'An error occurred while processing your request. Please try again later.',
+      posts: [],
+      pagination: {
+        page: 1,
+        limit: 10,
+        total: 0,
+      }
+    }, { status: 500 });
   }
 }
 
-/**
- * POST handler for /api/posts endpoint
- * Creates a new post
- */
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { title, content, excerpt, status, tags } = body;
+    // Get authenticated user
+    const authUser = await getAuthUser(request);
+    
+    if (!authUser) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+    
+    const userId = authUser.uid;
+    
+    // Parse request body
+    const data = await request.json();
     
     // Validate required fields
-    if (!title) {
+    if (!data.title) {
       return NextResponse.json(
         { error: 'Title is required' },
         { status: 400 }
       );
     }
     
-    // Create a new post using Firestore
-    const post = await firestore.posts.create({
-      title,
-      content,
-      excerpt,
-      status,
-      tags
-    });
+    // Create post document
+    const postData = {
+      title: data.title,
+      content: data.content || '',
+      status: data.status || 'draft',
+      authorId: userId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
     
-    return NextResponse.json(post, { status: 201 });
+    // Add to Firestore
+    const postRef = await adminDb.collection('posts').add(postData);
+    
+    return NextResponse.json({
+      id: postRef.id,
+      ...postData
+    }, { status: 201 });
   } catch (error) {
     console.error('Error creating post:', error);
+    
     return NextResponse.json(
-      { error: 'Failed to create post' },
+      { 
+        error: 'Failed to create post', 
+        message: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     );
   }

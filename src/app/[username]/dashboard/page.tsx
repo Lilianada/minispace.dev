@@ -1,7 +1,7 @@
 import React from 'react';
-import WelcomeSection from '../../components/dashboard-page/WelcomeSection';
-import QuickLinks from '../../components/dashboard-page/QuickLinks';
-import RecentPosts from '../../components/dashboard-page/RecentPosts';
+import WelcomeSection from '../../../components/dashboard-page/WelcomeSection';
+import QuickLinks from '../../../components/dashboard-page/QuickLinks';
+import RecentPosts from '../../../components/dashboard-page/RecentPosts';
 import { Metadata } from 'next';
 import TrafficSources from '@/components/dashboard-page/TrafficSources';
 

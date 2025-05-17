@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { getPostById } from '@/lib/api/posts';
 import PostForm from '@/components/posts-page/PostForm';
+import { getDashboardPath } from '@/lib/route-utils';
 
 
 export default function EditPostPage({ params }: { params: { id: string } }) {
@@ -63,7 +64,7 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
         <div className="text-center py-12">
           <h2 className="text-2xl font-bold mb-4">Failed to load post</h2>
           <p className="text-muted-foreground mb-6">{error || "The post couldn't be found"}</p>
-          <Button onClick={() => router.push('/dashboard/posts')}>
+          <Button onClick={() => router.push(getDashboardPath('posts'))}>
             Back to Posts
           </Button>
         </div>

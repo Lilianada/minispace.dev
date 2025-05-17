@@ -1,13 +1,14 @@
 /* eslint-disable react/no-unescaped-entities */
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { getDashboardPath } from '@/lib/route-utils';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,7 +25,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function ForgotPassword() {
   const router = useRouter();
-  const { user, resetPassword } = useAuth();
+  const { user, userData, resetPassword } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -36,9 +37,16 @@ export default function ForgotPassword() {
     },
   });
 
-  // Redirect if already signed in
+  // Use useEffect for redirection instead of doing it during render
+  useEffect(() => {
+    if (user && userData) {
+      const dashboardUrl = getDashboardPath();
+      router.push(dashboardUrl);
+    }
+  }, [user, userData, router]);
+
+  // Show loading screen while redirecting if user is already signed in
   if (user) {
-    router.push('/');
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader />

@@ -1,34 +1,37 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useParams } from 'next/navigation';
 import Navbar from '@/components/dashboard-page/Navbar';
 import Sidebar from '@/components/dashboard-page/Sidebar';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
+import { getDashboardPath } from '@/lib/route-utils';
 
 // Helper function to generate breadcrumb segments from pathname
-function generateBreadcrumbs(pathname: string) {
+function generateBreadcrumbs(pathname: string, username: string) {
   const paths = pathname.split('/').filter(Boolean);
   
   // Don't generate breadcrumbs for dashboard root
-  if (paths.length === 1 && paths[0] === 'dashboard') {
+  if (paths.length <= 2 && paths.includes('dashboard')) {
     return null;
   }
   
   const breadcrumbs = [];
-  let currentPath = '';
   
   // Always include dashboard as first item
   breadcrumbs.push({
     name: 'Dashboard',
-    href: '/dashboard',
+    href: username ? `/${username}/dashboard` : getDashboardPath(),
   });
   
   // Generate breadcrumb items based on path segments
-  for (let i = 1; i < paths.length; i++) {
+  let currentPath = '';
+  const dashboardIndex = paths.indexOf('dashboard');
+  
+  // Start from the segment after dashboard
+  for (let i = dashboardIndex + 1; i < paths.length; i++) {
     const segment = paths[i];
     currentPath += `/${segment}`;
-    const fullPath = `/dashboard${currentPath}`;
     
     // Skip numeric IDs in paths and combine with previous item
     if (/^\d+$/.test(segment) || /^[a-f0-9]{24}$/.test(segment)) {
@@ -39,7 +42,7 @@ function generateBreadcrumbs(pathname: string) {
     let name = segment.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     
     // Handle special cases
-    if (segment === 'posts' && i === 1) {
+    if (segment === 'posts' && i === dashboardIndex + 1) {
       name = 'Posts';
     } else if (segment === 'new-post') {
       name = 'Create New Post';
@@ -51,7 +54,7 @@ function generateBreadcrumbs(pathname: string) {
     
     breadcrumbs.push({
       name,
-      href: fullPath,
+      href: username ? `/${username}/dashboard${currentPath}` : getDashboardPath(currentPath.substring(1)),
       isLast: i === paths.length - 1 && !/^\d+$/.test(paths[paths.length - 1]),
     });
   }
@@ -72,6 +75,8 @@ export default function DashboardLayout({
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const pathname = usePathname();
+  const params = useParams();
+  const username = params?.username as string;
   
   // Hydration fix - only enable client-side features after mounting
   useEffect(() => {
@@ -84,7 +89,7 @@ export default function DashboardLayout({
   };
   
   // Generate breadcrumbs based on current path
-  const breadcrumbs = isMounted ? generateBreadcrumbs(pathname || '') : null;
+  const breadcrumbs = isMounted ? generateBreadcrumbs(pathname || '', username) : null;
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">

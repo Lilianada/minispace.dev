@@ -1,3 +1,5 @@
+// 'use client';
+
 import { Metadata } from 'next';
 import PostsList from '@/components/posts-page/PostsList';
 
@@ -8,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function PostsPage() {
   return (
-    <div className="mx-auto">
+    <div className="container py-6">
       <PostsList />
     </div>
   );
