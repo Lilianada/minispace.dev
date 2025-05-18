@@ -14,9 +14,22 @@ import { doc, getDoc, setDoc, collection, query, where, getDocs } from 'firebase
 import LoadingScreen from '@/components/LoadingScreen';
 
 
-interface UserData {
-  username: string
-  email: string
+export interface UserData {
+  username: string;
+  email: string;
+  displayName?: string | null;
+  photoURL?: string | null;
+  uid?: string;
+  bio?: string;
+  socialLinks?: {
+    website?: string;
+    twitter?: string;
+    github?: string;
+    linkedin?: string;
+    instagram?: string;
+  };
+  updatedAt?: Date;
+  createdAt?: Date;
 }
 
 
@@ -29,6 +42,7 @@ type AuthContextType = {
   signup: (email: string, username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  refreshUserData: () => Promise<void>;
 };
 
 // Create the authentication context
@@ -77,8 +91,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const userData = userDoc.data() as UserData;
             setUserData(userData);
             
-            // Store username in localStorage for route access
+            // Store username in localStorage and cookie for route access
             localStorage.setItem('username', userData.username);
+            document.cookie = `username=${userData.username}; path=/; max-age=3600; SameSite=Strict`;
           }
         } catch (error) {
           console.error("Error fetching user data or token:", error);
@@ -228,6 +243,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await signOut(auth);
       // Clear all auth-related data from localStorage and cookies on logout
       document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      document.cookie = 'username=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
       localStorage.removeItem('authTokenTimestamp');
       localStorage.removeItem('username');
       console.log('Auth data removed from localStorage and cookies');
@@ -263,6 +279,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Refresh user data function
+  const refreshUserData = async () => {
+    try {
+      if (!user) return;
+      
+      // Fetch the latest user data from Firestore
+      const userDocRef = doc(db, 'Users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+      
+      if (userDoc.exists()) {
+        setUserData(userDoc.data() as UserData);
+      }
+    } catch (error) {
+      console.error('Error refreshing user data:', error);
+    }
+  };
+
   // Create value object for context
   const contextValue: AuthContextType = {
     user,
@@ -271,7 +304,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     signup,
     logout,
-    resetPassword
+    resetPassword,
+    refreshUserData
   };
 
   return (

@@ -81,4 +81,6 @@ For optimal performance, create a minimal CSS approach using system fonts and ef
 
 
 ---
-after which we will design our first theme, the minimal theme, adding blocks should be optional, if the user is okay with what the theme has theremight be no need to add block just to edit or add content in markdown.
+We will design our first theme, the minimal theme, adding blocks should be optional, if the user is okay with what the theme has there might be no need for them to add block, they'll just need to edit or add content in markdown to their selected theme.
+
+

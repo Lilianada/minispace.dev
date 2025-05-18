@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: 'Preview your blog post before publishing',
 };
 
-export default function PreviewPage({ params }: { params: { id: string } }) {
+export default async function PreviewPage({ params }: { params: { id: string } }) {
   const { id } = params;
   
   if (!id) {

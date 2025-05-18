@@ -12,11 +12,21 @@ export function middleware(request: NextRequest) {
     // Get username from path (format: /{username}/dashboard/*)
     const username = pathname.split('/')[1];
     
-    // If no username in path or no auth token, redirect to sign in
+    // If no username in path or no auth token, redirect to discover page
     if (!username || !hasAuthToken) {
-      console.log(`Middleware: Redirecting unauthorized access to signin. Path: ${pathname}, Username: ${username}, HasToken: ${hasAuthToken}`);
-      const url = new URL('/signin', request.url);
-      url.searchParams.set('redirect', 'dashboard');
+      console.log(`Middleware: Redirecting unauthorized access to discover page. Path: ${pathname}, Username: ${username}, HasToken: ${hasAuthToken}`);
+      const url = new URL('/discover', request.url);
+      return NextResponse.redirect(url);
+    }
+    
+    // Check if the username in the URL matches the username in localStorage
+    // We can't access localStorage directly in middleware, but we can check cookies
+    const storedUsername = request.cookies.get('username')?.value;
+    
+    // If the username in the URL doesn't match the stored username, redirect to discover
+    if (storedUsername && username !== storedUsername) {
+      console.log(`Middleware: Username mismatch. URL: ${username}, Stored: ${storedUsername}`);
+      const url = new URL('/discover', request.url);
       return NextResponse.redirect(url);
     }
     

@@ -24,6 +24,9 @@ import {
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
+// Export authOptions for Next-Auth
+export { authOptions } from './auth-options';
+
 // Create a Google provider
 const googleProvider = new GoogleAuthProvider();
 

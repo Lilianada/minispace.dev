@@ -113,4 +113,4 @@ It’s the best of both worlds:
 4. Build lightweight content transformation pipeline (file → post object → Firebase)
 5. Offer migration guides per platform (e.g. “How to export from BearBlog to Minispace”)
 
-Would you like help drafting the UI/UX or import tool structure for this?
+From the value proposition here, we need to replace the features section with a fancy deisgn to display our value proposition, maybe even use a table to display this.

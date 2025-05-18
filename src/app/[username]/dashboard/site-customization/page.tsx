@@ -13,7 +13,7 @@ interface SiteCustomizationPageProps {
   };
 }
 
-export default function SiteCustomizationPage({ params }: SiteCustomizationPageProps) {
+export default async function SiteCustomizationPage({ params }: SiteCustomizationPageProps) {
   const { username } = params;
   
   if (!username) {

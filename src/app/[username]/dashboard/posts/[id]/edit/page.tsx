@@ -6,6 +6,6 @@ export const metadata: Metadata = {
   description: 'Edit your existing blog post',
 };
 
-export default function Page({ params }: { params: { id: string } }) {
+export default async function Page({ params }: { params: { id: string } }) {
   return <EditPostPage postId={params.id} />;
 }
