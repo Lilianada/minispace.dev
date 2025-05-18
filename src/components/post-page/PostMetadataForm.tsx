@@ -19,6 +19,7 @@ interface PostMetadataFormProps {
     excerpt?: string;
     tags?: string[];
     coverImage?: string;
+    customCSS?: string;
   }, unknown>;
 }
 

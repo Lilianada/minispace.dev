@@ -17,11 +17,13 @@ interface PostsFiltersProps {
     status: string;
     sort: string;
     search: string;
+    category: string;
   };
   onFilterChange: (filters: Partial<{
     status: string;
     sort: string;
     search: string;
+    category: string;
   }>) => void;
 }
 
@@ -49,12 +51,17 @@ export default function PostsFilters({
     onFilterChange({ sort: value });
   };
 
+  const handleCategoryChange = (value: string) => {
+    onFilterChange({ category: value });
+  };
+
   const handleClearFilters = () => {
     setSearchInput('');
     onFilterChange({
       status: 'all',
       sort: 'newest',
-      search: ''
+      search: '',
+      category: 'all'
     });
   };
 
@@ -62,7 +69,8 @@ export default function PostsFilters({
   const hasActiveFilters = 
     filters.status !== 'all' || 
     filters.sort !== 'newest' || 
-    filters.search !== '';
+    filters.search !== '' ||
+    filters.category !== 'all';
 
   return (
     <div className="space-y-4">
@@ -76,6 +84,20 @@ export default function PostsFilters({
               <SelectItem value="all">All</SelectItem>
               <SelectItem value="published">Published</SelectItem>
               <SelectItem value="draft">Drafts</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={filters.category} onValueChange={handleCategoryChange}>
+            <SelectTrigger className="w-[130px]">
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="blog">Blog</SelectItem>
+              <SelectItem value="notes">Notes</SelectItem>
+              <SelectItem value="writings">Writings</SelectItem>
+              <SelectItem value="drafts">Drafts</SelectItem>
+              <SelectItem value="custom">Custom</SelectItem>
             </SelectContent>
           </Select>
 

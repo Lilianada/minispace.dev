@@ -62,7 +62,7 @@ export default function PostItem({
     : 'Unknown date';
   
   const handleEdit = () => {
-    const editUrl = getDashboardPath(`blog-posts/${post.id}/edit`);
+    const editUrl = getDashboardPath(`posts/${post.id}/edit`);
     router.push(editUrl);
   };
   

@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import useSWR, { KeyedMutator } from 'swr'; // Import KeyedMutator for proper typing
-import { getPosts, PostFilters } from '@/lib/api/posts';
+import { fetchUserPosts, PostsResponse, Post as DashboardPost } from '@/lib/api/dashboard-posts';
 
 interface Post {
   id: string;
@@ -28,7 +28,14 @@ export interface PostsData {
   status?: string;
 }
 
-export type UsePostsParams = PostFilters;
+export interface UsePostsParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+  sort?: string;
+  category?: string;
+};
 
 export interface UsePostsResult {
   posts: Post[];
@@ -39,7 +46,8 @@ export interface UsePostsResult {
   error: Error | undefined | string;
   errorMessage?: string; 
   status?: string;
-  mutate: KeyedMutator<PostsData>; // Use SWR's KeyedMutator type
+  hasMore: boolean;
+  mutate: KeyedMutator<PostsResponse>; // Use SWR's KeyedMutator type
 }
 
 /**
@@ -74,12 +82,12 @@ export default function usePosts({
   // This is used as the cache key for SWR
   const queryKey = `/api/posts?${queryParams.toString()}`;
   
-  // Prepare the filter object for getPosts
-  const filters: PostFilters = { page, limit, search, status, sort };
+  // Prepare the filter object for fetchUserPosts
+  const filters = { page, limit, search, status, sort };
   
-  const { data, error, isLoading, mutate } = useSWR<PostsData>(
+  const { data, error, isLoading, mutate } = useSWR<PostsResponse>(
     queryKey,
-    () => getPosts(filters),
+    () => fetchUserPosts({ status: status as 'all' | 'published' | 'draft', sort }),
     {
       revalidateOnFocus: false,
       dedupingInterval: 60000, // 1 minute
@@ -97,9 +105,10 @@ export default function usePosts({
     totalPages: data?.totalPages || 0,
     currentPage: data?.currentPage || page,
     isLoading,
-    error: error || data?.error,
-    errorMessage: data?.message,
-    status: data?.status || (error ? 'error' : 'success'),
+    error: error || undefined,
+    errorMessage: error ? (error instanceof Error ? error.message : String(error)) : undefined,
+    status: error ? 'error' : 'success',
+    hasMore: data?.hasMore || false,
     mutate, // Pass the mutate function as is
   };
 }

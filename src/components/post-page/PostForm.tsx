@@ -139,7 +139,7 @@ export default function PostForm({ initialData, isEditing = false }: PostFormPro
       
       // Redirect to the blog posts page after a short delay
       setTimeout(() => {
-        router.push(getDashboardPath('blog-posts'));
+        router.push(getDashboardPath('posts'));
       }, 1000);
     } catch (error) {
       console.error('Error publishing blog post:', error);
@@ -205,7 +205,7 @@ export default function PostForm({ initialData, isEditing = false }: PostFormPro
       
       // Redirect to the blog posts page after a short delay
       setTimeout(() => {
-        router.push(getDashboardPath('blog-posts'));
+        router.push(getDashboardPath('posts'));
       }, 1000);
     } catch (error) {
       console.error('Error saving blog post:', error);
@@ -271,7 +271,7 @@ export default function PostForm({ initialData, isEditing = false }: PostFormPro
           <Button 
             type="button" 
             variant="outline"
-            onClick={() => router.push(getDashboardPath('blog-posts'))}
+            onClick={() => router.push(getDashboardPath('posts'))}
             disabled={isSubmitting}
           >
             Cancel

@@ -13,10 +13,12 @@ interface PostEditorProps {
   form: UseFormReturn<{
     title: string;
     content: string;
-    slug?: string;
+    slug: string;
+    urlPath?: string;
     excerpt?: string;
     tags?: string[];
     coverImage?: string;
+    customCSS?: string;
   }, unknown>;
   preview?: boolean;
 }

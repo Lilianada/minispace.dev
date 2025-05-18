@@ -26,7 +26,7 @@ export default function PostsEmptyState({
   const router = useRouter();
 
   const handleCreatePost = () => {
-    router.push(getDashboardPath('blog-posts/new-post'));
+    router.push(getDashboardPath('posts/new-post'));
   };
 
   return (

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import { Button } from '../ui/button';
 
 interface NavigationItem {
   name: string;
@@ -162,18 +163,28 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         </div>
       </nav>
 
-      {/* Bottom section */}
-      <div className="absolute bottom-0 w-full p-4">
+
+      {/* Storage section */}
         {!isCollapsed && (
+      <div className="absolute bottom-0 w-full p-4 grid gap-4">
+      {/* Banner to upgrade to pro */}
+      <div className="w-full">
+        <div className="rounded-md bg-primary/10 p-3 text-xs text-primary">
+          <p className="mb-1">Upgrade to Pro</p>
+          <p className="text-xs text-muted-foreground">Get access to all features and more storage</p>
+          <Button className="mt-2">Upgrade</Button>
+        </div>
+      </div>
+
           <div className="rounded-md bg-muted/50 p-3 text-xs text-muted-foreground">
             <p className="mb-1">Storage used</p>
             <div className="w-full bg-muted rounded-full h-1.5">
               <div className="bg-primary h-1.5 rounded-full w-1/4"></div>
             </div>
-            <p className="mt-1">25% of 1GB used</p>
+            <p className="mt-1">25% of 100MB used</p>
           </div>
-        )}
       </div>
+        )}
     </div>
   );
 }

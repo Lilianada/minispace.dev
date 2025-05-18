@@ -2,17 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import useAuth from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import ThemeSelector from '@/components/site-customization/ThemeSelector';
-import CustomCSSEditor from '@/components/site-customization/CustomCSSEditor';
 import PageBlocksEditor from '@/components/site-customization/PageBlocksEditor';
+import ThemeSelector from '@/components/site-customization/ThemeSelector';
 import PageManager from '@/components/site-customization/PageManager';
+import CustomCSSManager from '@/components/site-customization/CustomCSSManager';
+import CustomCSSEditor from '@/components/site-customization/CustomCSSEditor';
 
 interface UserSettings {
   theme: string;
@@ -189,10 +191,68 @@ export default function SiteCustomizationClient({ username }: { username: string
           </TabsList>
           
           <TabsContent value="theme" className="space-y-6">
-            <ThemeSelector 
-              currentTheme={userSettings.theme} 
-              userId={userId} 
-            />
+            <Tabs defaultValue="blocks" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="blocks">Content Blocks</TabsTrigger>
+                <TabsTrigger value="theme">Theme</TabsTrigger>
+                <TabsTrigger value="css">Custom CSS</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="blocks" className="space-y-4">
+                <div className="flex gap-4">
+                  <div className="w-64 shrink-0">
+                    <Card className="p-4">
+                      <PageManager
+                        pages={siteCustomization.pages}
+                        userId={userId}
+                        activePage={activePage}
+                        onPageChange={setActivePage}
+                        onPagesUpdated={(updatedPages) => {
+                          setSiteCustomization({
+                            ...siteCustomization,
+                            pages: updatedPages
+                          });
+                        }}
+                      />
+                    </Card>
+                  </div>
+              
+                  <div className="flex-1">
+                    {activePage && activePage !== '' && siteCustomization.pages[activePage] ? (
+                      <PageBlocksEditor 
+                        key={activePage} /* Add key to force re-render when page changes */
+                        page={siteCustomization.pages[activePage]} 
+                        userId={userId} 
+                      />
+                    ) : (
+                      <div className="p-8 border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-center">
+                        <p className="text-muted-foreground mb-4">Select a page from the sidebar or create a new page to start editing.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="theme">
+                <ThemeSelector 
+                  currentTheme={userSettings.theme} 
+                  userId={userId} 
+                />
+              </TabsContent>
+              
+              <TabsContent value="css">
+                {activePage && activePage !== '' ? (
+                  <CustomCSSManager 
+                    userId={userId}
+                    pageSlug={activePage}
+                  />
+                ) : (
+                  <div className="p-8 border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-center">
+                    <p className="text-muted-foreground mb-4">Select a page from the sidebar to add custom CSS for that page.</p>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </TabsContent>
           
           <TabsContent value="pages" className="space-y-6">

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import useAuth from '@/hooks/useAuth';
-import PostForm from '@/components/posts/PostForm';
+import PostForm from '@/components/post-page/PostForm';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { AlertCircle } from 'lucide-react';
@@ -111,7 +111,7 @@ export default function EditPostPage({ postId }: EditPostPageProps) {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
         <div className="flex justify-end">
-          <Button onClick={() => router.push(getDashboardPath('blog-posts'))}>
+          <Button onClick={() => router.push(getDashboardPath('posts'))}>
             Back to Blog Posts
           </Button>
         </div>

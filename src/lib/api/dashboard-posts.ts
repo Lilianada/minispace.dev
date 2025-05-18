@@ -13,7 +13,8 @@ import {
   Timestamp,
   DocumentData,
   QueryDocumentSnapshot,
-  serverTimestamp
+  serverTimestamp,
+  collectionGroup
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { getAuth } from 'firebase/auth';
@@ -48,7 +49,7 @@ export interface PostsResponse {
   totalPages: number;
   currentPage: number;
   hasMore: boolean;
-  lastDoc?: QueryDocumentSnapshot<DocumentData>;
+  lastDoc?: QueryDocumentSnapshot<DocumentData> | null;
 }
 
 export interface PostFilters {
@@ -69,6 +70,7 @@ export async function fetchUserPosts(filters: PostFilters = {}): Promise<PostsRe
   const {
     status = 'all',
     sort = 'newest',
+    search = '',
     page: rawPage,
     lastDoc: rawLastDoc
   } = filters;
@@ -92,61 +94,53 @@ export async function fetchUserPosts(filters: PostFilters = {}): Promise<PostsRe
     const userId = user.uid;
     console.log('User ID for posts query:', userId);
     
-    // Try different collection names based on the Firebase project configuration
-    // The project is named 'mini-app-00' according to the user's configuration
-    let collectionName = 'posts';
+    // Use subcollection under Users collection
+    const postsRef = collection(db, 'Users', userId, 'posts');
     
-    // Check if we're in development mode and log the collection name
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Firebase project ID:', process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);
-      console.log('Attempting to use collection:', collectionName);
+    // Build query based on filters
+    let postsQuery;
+    
+    // Apply status filter if not 'all'
+    if (status !== 'all') {
+      postsQuery = query(postsRef, where('status', '==', status));
+    } else {
+      postsQuery = query(postsRef);
     }
     
-    const postsRef = collection(db, collectionName);
+    // Apply sorting
+    if (sort === 'newest') {
+      postsQuery = query(postsQuery, orderBy('createdAt', 'desc'));
+    } else if (sort === 'oldest') {
+      postsQuery = query(postsQuery, orderBy('createdAt', 'asc'));
+    } else if (sort === 'title') {
+      postsQuery = query(postsQuery, orderBy('title', 'asc'));
+    } else if (sort === 'updated') {
+      postsQuery = query(postsQuery, orderBy('updatedAt', 'desc'));
+    }
     
-    // Build a simpler query to start with - just get posts by author
-    // This approach is less likely to encounter index issues
-    console.log('Building simplified query for debugging');
-    
-    // Start with the most basic query possible
-    let postsQuery = query(postsRef, where('authorId', '==', userId));
-    
-    // Add a simple sort by createdAt desc (newest first)
-    // This should work with the basic composite index that's likely already set up
-    postsQuery = query(postsQuery, orderBy('createdAt', 'desc'));
-    
-    // Add a reasonable limit
-    postsQuery = query(postsQuery, limit(10));
+    // Apply pagination
+    if (rawLastDoc) {
+      postsQuery = query(postsQuery, startAfter(rawLastDoc), limit(limitNum));
+    } else {
+      postsQuery = query(postsQuery, limit(limitNum));
+    }
     
     // Execute query
-    console.log('Executing Firestore query with constraints:', { 
-      authorId: userId,
-      collection: collectionName
-    });
+    console.log('Executing Firestore query for posts subcollection');
     
     let snapshot;
     try {
       snapshot = await getDocs(postsQuery);
       console.log('Query results:', { count: snapshot.docs.length });
-      
-      // If we got no results, log additional information to help debug
-      if (snapshot.docs.length === 0) {
-        console.log('No posts found for user ID:', userId);
-        console.log('This could be due to:');
-        console.log('1. No posts exist for this user');
-        console.log('2. The collection name is incorrect');
-        console.log('3. The field names (authorId, createdAt) are incorrect');
-      }
     } catch (error) {
       console.error('Error executing Firestore query:', error);
       throw error;
     }
     
-    // Get the last document for pagination
-    const lastDoc = snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : undefined;
+    // Process the results
+    const lastDoc = snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
     
-    // Transform the data
-    let posts = snapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => {
+    const posts = snapshot.docs.map(doc => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -154,35 +148,21 @@ export async function fetchUserPosts(filters: PostFilters = {}): Promise<PostsRe
         createdAt: data.createdAt?.toDate?.() || new Date(),
         updatedAt: data.updatedAt?.toDate?.() || new Date(),
         publishedAt: data.publishedAt?.toDate?.() || null
-      };
-    }) as Post[];
+      } as Post;
+    });
     
-    // If we have a search query, filter the results in memory
-    // This is a client-side approach since Firestore doesn't support full-text search
-    if (filters.search && filters.search.trim() !== '') {
-      const searchLower = filters.search.toLowerCase();
-      posts = posts.filter(post => {
-        return (
-          (post.title?.toLowerCase() || '').includes(searchLower) ||
-          (post.excerpt?.toLowerCase() || '').includes(searchLower) ||
-          (post.content?.toLowerCase() || '').includes(searchLower) ||
-          post.tags?.some(tag => tag.toLowerCase().includes(searchLower))
-        );
-      });
+    // Apply search filter if provided (client-side filtering)
+    let filteredPosts = posts;
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filteredPosts = posts.filter(post => 
+        post.title.toLowerCase().includes(searchLower) ||
+        (post.excerpt && post.excerpt.toLowerCase().includes(searchLower)) ||
+        (post.content && post.content.toLowerCase().includes(searchLower))
+      );
     }
     
-    // Get total count (this is an approximation since we're not fetching all posts)
-    // For a more accurate count, you would need a separate counter in Firestore
-    let totalQuery = query(postsRef, where('authorId', '==', userId));
-    
-    // Add status filter if not 'all'
-    if (status && status !== 'all') {
-      totalQuery = query(totalQuery, where('status', '==', status));
-    }
-    
-    // For simplicity, we'll use the fetched posts length as the total
-    // In a production app, you might want to implement a more sophisticated counting mechanism
-    const total = posts.length;
+    const total = filteredPosts.length;
     const totalPages = Math.max(1, Math.ceil(total / limitNum));
     
     const response = {
@@ -232,7 +212,8 @@ export async function getPostById(postId: string): Promise<Post | null> {
       throw new Error('Authentication required');
     }
     
-    const postRef = doc(db, 'posts', postId);
+    const userId = user.uid;
+    const postRef = doc(db, 'Users', userId, 'posts', postId);
     const postSnap = await getDoc(postRef);
     
     if (!postSnap.exists()) {
@@ -240,11 +221,6 @@ export async function getPostById(postId: string): Promise<Post | null> {
     }
     
     const postData = postSnap.data();
-    
-    // Verify the user owns this post
-    if (postData.authorId !== user.uid) {
-      throw new Error('You do not have permission to access this post');
-    }
     
     return {
       id: postSnap.id,
@@ -271,19 +247,12 @@ export async function deletePost(postId: string): Promise<boolean> {
       throw new Error('Authentication required');
     }
     
-    // Get post to verify ownership
-    const postRef = doc(db, 'posts', postId);
+    const userId = user.uid;
+    const postRef = doc(db, 'Users', userId, 'posts', postId);
     const postSnap = await getDoc(postRef);
     
     if (!postSnap.exists()) {
       throw new Error('Post not found');
-    }
-    
-    const postData = postSnap.data();
-    
-    // Verify the user owns this post
-    if (postData.authorId !== user.uid) {
-      throw new Error('You do not have permission to delete this post');
     }
     
     await deleteDoc(postRef);
@@ -306,7 +275,8 @@ export async function updatePostStatus(postId: string, status: string): Promise<
       throw new Error('Authentication required');
     }
     
-    const postRef = doc(db, 'posts', postId);
+    const userId = user.uid;
+    const postRef = doc(db, 'Users', userId, 'posts', postId);
     const postSnap = await getDoc(postRef);
     
     if (!postSnap.exists()) {
@@ -314,11 +284,6 @@ export async function updatePostStatus(postId: string, status: string): Promise<
     }
     
     const postData = postSnap.data();
-    
-    // Verify the user owns this post
-    if (postData.authorId !== user.uid) {
-      throw new Error('You do not have permission to update this post');
-    }
     
     // Update fields based on status
     const updateData: any = { 

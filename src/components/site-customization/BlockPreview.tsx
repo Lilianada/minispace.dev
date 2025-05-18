@@ -16,12 +16,13 @@ export function BlockPreview({ block, compact = false }: BlockPreviewProps) {
       case 'hero':
         return compact ? (
           <div className="p-4 bg-muted rounded-md">
-            <h3 className="text-lg font-semibold">{data.heading || 'Hero Heading'}</h3>
-            <p className="text-sm text-muted-foreground">{data.subheading || 'Hero subheading'}</p>
+            {data.heading && <h3 className="text-lg font-semibold">{data.heading}</h3>}
+            {data.content && <p className="text-sm text-muted-foreground truncate">{data.content}</p>}
+            {data.subheading && <p className="text-xs text-muted-foreground">{data.subheading}</p>}
           </div>
         ) : (
           <div 
-            className="relative p-8 rounded-lg overflow-hidden"
+            className={`relative p-8 rounded-lg overflow-hidden ${data.cssClass || ''}`}
             style={{
               backgroundImage: data.backgroundImage ? `url(${data.backgroundImage})` : undefined,
               backgroundSize: 'cover',
@@ -31,17 +32,33 @@ export function BlockPreview({ block, compact = false }: BlockPreviewProps) {
             {data.backgroundImage && (
               <div className="absolute inset-0 bg-black/40" />
             )}
-            <div className="relative z-10 text-center space-y-4">
-              <h2 className={`text-3xl font-bold ${data.backgroundImage ? 'text-white' : ''}`}>
-                {data.heading || 'Welcome to My Site'}
-              </h2>
-              <p className={`text-lg ${data.backgroundImage ? 'text-white/80' : 'text-muted-foreground'}`}>
-                {data.subheading || 'This is a hero section with a call to action'}
-              </p>
+            <div className={`relative z-10 space-y-4 text-${data.alignment || 'center'}`}>
+              {data.heading && (
+                <h2 className={`text-3xl font-bold ${data.backgroundImage ? 'text-white' : ''}`}>
+                  {data.heading}
+                </h2>
+              )}
+              
+              {data.content && (
+                <div className={`prose ${data.backgroundImage ? 'prose-invert' : ''} max-w-none`}>
+                  <ReactMarkdown>
+                    {data.content}
+                  </ReactMarkdown>
+                </div>
+              )}
+              
+              {data.subheading && (
+                <p className={`text-lg ${data.backgroundImage ? 'text-white/80' : 'text-muted-foreground'}`}>
+                  {data.subheading}
+                </p>
+              )}
+              
               {data.buttonText && (
-                <Button>
-                  {data.buttonText}
-                </Button>
+                <div>
+                  <Button>
+                    {data.buttonText}
+                  </Button>
+                </div>
               )}
             </div>
           </div>
@@ -54,7 +71,7 @@ export function BlockPreview({ block, compact = false }: BlockPreviewProps) {
             <p className="text-sm text-muted-foreground truncate">{data.content || 'Text content...'}</p>
           </div>
         ) : (
-          <div className={`space-y-4 text-${data.alignment || 'left'}`}>
+          <div className={`space-y-4 text-${data.alignment || 'left'} ${data.cssClass || ''}`}>
             {data.heading && <h2 className="text-2xl font-bold">{data.heading}</h2>}
             <div className="prose dark:prose-invert max-w-none">
               {data.content ? (
@@ -80,7 +97,7 @@ export function BlockPreview({ block, compact = false }: BlockPreviewProps) {
             </div>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className={`space-y-2 ${data.cssClass || ''}`}>
             <div className="relative aspect-video bg-muted rounded-md overflow-hidden">
               {data.src ? (
                 <img

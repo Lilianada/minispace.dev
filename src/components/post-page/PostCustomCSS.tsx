@@ -15,6 +15,7 @@ interface PostCustomCSSProps {
     title: string;
     content: string;
     slug: string;
+    urlPath?: string;
     excerpt?: string;
     tags?: string[];
     coverImage?: string;
