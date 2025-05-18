@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from'@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { allThemes } from '@/themes';
 import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
@@ -14,7 +14,7 @@ export default function ThemePreviewPage({ params }: { params: Promise<{ usernam
   const unwrappedParams = React.use(params);
   const { username, themeId } = unwrappedParams;
   const router = useRouter();
-  const { user, userData } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [isApplying, setIsApplying] = useState(false);
   
@@ -48,7 +48,7 @@ export default function ThemePreviewPage({ params }: { params: Promise<{ usernam
   const ThemePreviewComponent = theme.preview;
   
   const handleApplyTheme = async () => {
-    if (!user || !userData || userData.username !== username) {
+    if (!user || user.username !== username) {
       toast({
         title: 'Permission denied',
         description: 'You can only update your own site settings.',

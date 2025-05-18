@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/components/landing-page/navbar';
 import { Input } from '@/components/ui/input';
 import { mockPosts } from '../../../utils/mock-data';   
+import LoadingDots from '@/components/LoadingDots';
 
 interface Author {
   username: string;
@@ -185,7 +186,7 @@ export default function DiscoverPage() {
         <div>
           {loading ? (
             <div className="py-8 text-muted-foreground">
-              <p>Loading posts...</p>
+             <LoadingDots />
             </div>
           ) : error ? (
             <div className="py-8 text-destructive">

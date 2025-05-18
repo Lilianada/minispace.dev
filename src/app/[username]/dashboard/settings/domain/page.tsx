@@ -17,7 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DomainSettingsPage({ params }: { params: { username: string } }) {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, userData, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -26,8 +26,8 @@ export default function DomainSettingsPage({ params }: { params: { username: str
     subdomain: '',
     isActive: false,
     isVerified: false,
-    createdAt: null,
-    updatedAt: null,
+    createdAt: null as Date | null,
+    updatedAt: null as Date | null,
   });
   const [customDomainSettings, setCustomDomainSettings] = useState({
     domain: '',
@@ -42,7 +42,7 @@ export default function DomainSettingsPage({ params }: { params: { username: str
   useEffect(() => {
     // Use a local function to avoid re-renders
     const fetchDomainSettings = async () => {
-      if (!user) return;
+      if (!user || !userData) return;
 
       try {
         setIsLoading(true);
@@ -90,7 +90,7 @@ export default function DomainSettingsPage({ params }: { params: { username: str
     } else {
       setIsLoading(false); // Set loading to false if no user
     }
-  }, [user, toast]);
+  }, [user, userData, toast]);
 
   const checkSubdomainAvailability = async () => {
     if (!subdomainSettings.subdomain) {
@@ -208,6 +208,7 @@ export default function DomainSettingsPage({ params }: { params: { username: str
         isActive: true,
         isVerified: true,
         updatedAt: now,
+        createdAt: subdomainSettings.createdAt || now,
       });
 
       toast({
@@ -240,7 +241,7 @@ export default function DomainSettingsPage({ params }: { params: { username: str
     window.open(`https://${subdomainSettings.subdomain}.minispace.app/preview`, '_blank');
   };
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="container py-10">
         <h1 className="text-3xl font-bold mb-6">Domain Settings</h1>

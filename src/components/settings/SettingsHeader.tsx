@@ -21,11 +21,7 @@ export function SettingsHeader({ user, userData }: SettingsHeaderProps) {
     <Card className="mb-6">
       <CardContent className="pt-6">
         <div className="flex items-center gap-4 mb-6">
-          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <Settings className="h-5 w-5 text-primary" />
-          </div>
           <div>
-            <h2 className="text-2xl font-semibold">Settings</h2>
             <p className="text-muted-foreground">Manage your account and site preferences</p>
           </div>
         </div>

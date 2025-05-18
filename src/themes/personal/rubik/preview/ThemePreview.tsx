@@ -152,35 +152,39 @@ Good writing is rewriting. Edit your posts to remove fluff, clarify ideas, and f
   return (
     <div className="w-full">
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <div className="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-          <h3 className="text-lg font-medium text-gray-900">Rubik Theme Preview</h3>
-          
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
-            <TabsList>
-              <TabsTrigger value="home">Home</TabsTrigger>
-              <TabsTrigger value="about">About</TabsTrigger>
-              <TabsTrigger value="posts">Posts</TabsTrigger>
-              <TabsTrigger value="post">Single Post</TabsTrigger>
-            </TabsList>
-          </Tabs>
+        <div className="p-4 border-b border-gray-200 bg-gray-50">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Rubik Theme Preview</h3>
         </div>
         
         <div className="h-[600px] overflow-y-auto">
-          <TabsContent value="home" className="m-0">
-            <HomePage config={rubikThemeConfig} userData={userData} posts={samplePosts} />
-          </TabsContent>
-          
-          <TabsContent value="about" className="m-0">
-            <AboutPage config={rubikThemeConfig} userData={userData} />
-          </TabsContent>
-          
-          <TabsContent value="posts" className="m-0">
-            <PostsPage config={rubikThemeConfig} posts={samplePosts} totalPosts={samplePosts.length} />
-          </TabsContent>
-          
-          <TabsContent value="post" className="m-0">
-            <PostPage config={rubikThemeConfig} post={samplePost} userData={userData} />
-          </TabsContent>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="px-4 pt-4 border-b">
+              <TabsList>
+                <TabsTrigger value="home">Home</TabsTrigger>
+                <TabsTrigger value="about">About</TabsTrigger>
+                <TabsTrigger value="posts">Posts</TabsTrigger>
+                <TabsTrigger value="post">Single Post</TabsTrigger>
+              </TabsList>
+            </div>
+            
+            <div className="p-0">
+              <TabsContent value="home" className="m-0 p-0">
+                <HomePage config={rubikThemeConfig} userData={userData} posts={samplePosts} />
+              </TabsContent>
+              
+              <TabsContent value="about" className="m-0 p-0">
+                <AboutPage config={rubikThemeConfig} userData={userData} />
+              </TabsContent>
+              
+              <TabsContent value="posts" className="m-0 p-0">
+                <PostsPage config={rubikThemeConfig} posts={samplePosts} totalPosts={samplePosts.length} />
+              </TabsContent>
+              
+              <TabsContent value="post" className="m-0 p-0">
+                <PostPage config={rubikThemeConfig} post={samplePost} userData={userData} />
+              </TabsContent>
+            </div>
+          </Tabs>
         </div>
         
         <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-end">

@@ -4,7 +4,7 @@ import { User } from 'firebase/auth';
 import { UserData } from '@/lib/auth-context';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings, Palette } from 'lucide-react';
+import { Settings, Palette, Globe } from 'lucide-react';
 import Link from 'next/link';
 
 interface CustomizationHeaderProps {
@@ -21,12 +21,10 @@ export function CustomizationHeader({ user, userData }: CustomizationHeaderProps
   return (
     <Card className="mb-6">
       <CardContent className="pt-6">
+            
         <div className="flex items-center gap-4 mb-6">
-          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <Settings className="h-5 w-5 text-primary" />
-          </div>
+          
           <div>
-            <h2 className="text-2xl font-semibold">Site Customization</h2>
             <p className="text-muted-foreground">
             Customize your personal site on Minispace. Changes will be visible at <strong>{username}.minispace.dev</strong>
           </p>
@@ -34,7 +32,12 @@ export function CustomizationHeader({ user, userData }: CustomizationHeaderProps
         </div>
         
         <div className="flex flex-wrap gap-3">
-         
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/${username}/dashboard/settings/domain`}>
+              <Globe className="h-4 w-4 mr-2" />
+              Domain Settings
+            </Link>
+          </Button>
           
           <Button variant="outline" size="sm" asChild>
             <Link href={`/${username}/dashboard/site-customization/themes`}>

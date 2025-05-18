@@ -19,21 +19,21 @@ export default function SettingsPage() {
   const { user, userData, logout } = useAuth();
   const { toast } = useToast();
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
-  
+
   // Account settings
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [marketingEmails, setMarketingEmails] = useState(false);
   const [twoFactorAuth, setTwoFactorAuth] = useState(false);
-  
+
   // Privacy settings
   const [publicProfile, setPublicProfile] = useState(true);
   const [showEmail, setShowEmail] = useState(false);
   const [analyticsConsent, setAnalyticsConsent] = useState(true);
-  
+
   // Notification settings
   const [mentionNotifications, setMentionNotifications] = useState(true);
   const [newsletterFrequency, setNewsletterFrequency] = useState('weekly');
-  
+
   // API settings
   const [apiKey, setApiKey] = useState('');
   const [webhookUrl, setWebhookUrl] = useState('');
@@ -42,19 +42,19 @@ export default function SettingsPage() {
     subscriberAdded: false,
     formSubmission: false
   });
-  
+
   // Load user settings from Firestore
   useEffect(() => {
     async function loadUserSettings() {
       if (!user) return;
-      
+
       try {
         setIsLoadingSettings(true);
         const userSettingsDoc = await getDoc(doc(db, 'Users', user.uid, 'settings', 'preferences'));
-        
+
         if (userSettingsDoc.exists()) {
           const data = userSettingsDoc.data();
-          
+
           // Update state with loaded settings
           setEmailNotifications(data.emailNotifications ?? true);
           setMarketingEmails(data.marketingEmails ?? false);
@@ -83,18 +83,22 @@ export default function SettingsPage() {
         setIsLoadingSettings(false);
       }
     }
-    
+
     loadUserSettings();
   }, [user, toast]);
-  
+
   if (!user) {
     return <div className="p-8 text-center">Please log in to view settings.</div>;
   }
-  
+
   return (
-    <div className="container py-10">
+    <div className="container py-8">
+<div className="space-y-8">
+
+      <h2 className="text-2xl font-semibold">Settings</h2>
+
       <SettingsHeader user={user} userData={userData} />
-      
+
       <Tabs defaultValue="account" className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="account">Account</TabsTrigger>
@@ -103,9 +107,9 @@ export default function SettingsPage() {
           <TabsTrigger value="api">API</TabsTrigger>
           <TabsTrigger value="danger">Danger Zone</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="account" className="space-y-4">
-          <AccountSettings 
+          <AccountSettings
             user={user}
             userData={userData}
             emailNotifications={emailNotifications}
@@ -116,9 +120,9 @@ export default function SettingsPage() {
             setTwoFactorAuth={setTwoFactorAuth}
           />
         </TabsContent>
-        
+
         <TabsContent value="privacy" className="space-y-4">
-          <PrivacySettings 
+          <PrivacySettings
             user={user}
             publicProfile={publicProfile}
             setPublicProfile={setPublicProfile}
@@ -128,9 +132,9 @@ export default function SettingsPage() {
             setAnalyticsConsent={setAnalyticsConsent}
           />
         </TabsContent>
-        
+
         <TabsContent value="notifications" className="space-y-4">
-          <NotificationSettings 
+          <NotificationSettings
             user={user}
             mentionNotifications={mentionNotifications}
             setMentionNotifications={setMentionNotifications}
@@ -138,9 +142,9 @@ export default function SettingsPage() {
             setNewsletterFrequency={setNewsletterFrequency}
           />
         </TabsContent>
-        
+
         <TabsContent value="api" className="space-y-4">
-          <ApiSettings 
+          <ApiSettings
             user={user}
             apiKey={apiKey}
             setApiKey={setApiKey}
@@ -150,14 +154,15 @@ export default function SettingsPage() {
             setWebhookEvents={setWebhookEvents}
           />
         </TabsContent>
-        
+
         <TabsContent value="danger" className="space-y-4">
-          <DangerZone 
+          <DangerZone
             user={user}
             logout={logout}
           />
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 }

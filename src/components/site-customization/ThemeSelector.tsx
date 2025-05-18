@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import useAuth from '@/hooks/useAuth';
+import { UserData } from '@/lib/auth-context';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -36,13 +37,17 @@ const allThemes: Theme[] = themeCategories.flatMap(category =>
 interface ThemeSelectorProps {
   currentTheme: string;
   userId: string;
+  userData?: UserData | null;
 }
 
-export default function ThemeSelector({ currentTheme, userId }: ThemeSelectorProps) {
+export default function ThemeSelector({ currentTheme, userId, userData: propUserData }: ThemeSelectorProps) {
   const [selectedTheme, setSelectedTheme] = useState(currentTheme || 'personal/rubik');
   const [selectedCategory, setSelectedCategory] = useState('personal');
   const [isUpdating, setIsUpdating] = useState(false);
-  const { user } = useAuth();
+  const { user, userData: authUserData } = useAuth();
+  
+  // Use userData from props if available, otherwise use from auth context
+  const userData = propUserData || authUserData;
   const router = useRouter();
   const { toast } = useToast();
 
@@ -177,7 +182,9 @@ export default function ThemeSelector({ currentTheme, userId }: ThemeSelectorPro
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                router.push(`/${localStorage.getItem('username')}/dashboard/themes/preview/${encodeURIComponent(theme.id)}`);
+                                // Get username from userData or localStorage as fallback
+                                const username = userData?.username || localStorage.getItem('username');
+                                router.push(`/${username}/dashboard/site-customization/themes/preview/${encodeURIComponent(theme.id)}`);
                               }}
                             >
                               Preview Theme

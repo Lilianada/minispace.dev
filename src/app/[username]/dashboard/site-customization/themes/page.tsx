@@ -90,7 +90,7 @@ export default function ThemesPage({ params }: { params: { username: string } })
           ) : (
             <ThemeSelector
               currentTheme={currentTheme || 'personal/rubik'}
-              userId={user.uid}
+              userId={user?.uid || ''}
             />
           )}
         </CardContent>

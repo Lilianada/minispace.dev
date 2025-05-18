@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Form, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Loader } from '@/components/ui/loader';
+import LoadingDots from '@/components/LoadingDots';
 
 // Form schema
 const formSchema = z.object({
@@ -50,7 +51,7 @@ export default function SignIn() {
   if (user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader />
+        <LoadingDots />
       </div>
     );
   }
