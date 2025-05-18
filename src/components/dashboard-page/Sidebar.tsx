@@ -135,7 +135,7 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 
       {/* Navigation items */}
       <nav className="mt-5 px-2">
-        <div className="space-y-1">
+        <div className="space-y-4">
           {navigation.map((item) => {
             // Check if path after username matches the expected dashboard route pattern
             const baseHref = item.href.replace(`/${username}`, '');

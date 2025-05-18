@@ -118,7 +118,7 @@ export default function PostForm({ initialData, isEditing = false }: PostFormPro
       
       if (isEditing && initialData?.id) {
         // Update existing post
-        const postRef = doc(db, 'posts', initialData.id);
+        const postRef = doc(db, 'Users', user.uid, 'posts', initialData.id);
         await updateDoc(postRef, {
           ...postData,
           updatedAt: serverTimestamp(),
@@ -126,7 +126,7 @@ export default function PostForm({ initialData, isEditing = false }: PostFormPro
         postId = initialData.id;
       } else {
         // Create new post
-        const postsRef = collection(db, 'posts');
+        const postsRef = collection(db, 'Users', user.uid, 'posts');
         const docRef = await addDoc(postsRef, postData);
         postId = docRef.id;
       }
@@ -184,7 +184,7 @@ export default function PostForm({ initialData, isEditing = false }: PostFormPro
       
       if (isEditing && initialData?.id) {
         // Update existing post
-        const postRef = doc(db, 'posts', initialData.id);
+        const postRef = doc(db, 'Users', user.uid, 'posts', initialData.id);
         await updateDoc(postRef, {
           ...postData,
           updatedAt: serverTimestamp(),
@@ -192,7 +192,7 @@ export default function PostForm({ initialData, isEditing = false }: PostFormPro
         postId = initialData.id;
       } else {
         // Create new post
-        const postsRef = collection(db, 'posts');
+        const postsRef = collection(db, 'Users', user.uid, 'posts');
         const docRef = await addDoc(postsRef, postData);
         postId = docRef.id;
       }

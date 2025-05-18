@@ -62,6 +62,7 @@ export default function PostItem({
     : 'Unknown date';
   
   const handleEdit = () => {
+    // Fix the edit URL to match the correct route structure
     const editUrl = getDashboardPath(`posts/${post.id}/edit`);
     router.push(editUrl);
   };
@@ -76,11 +77,11 @@ export default function PostItem({
       // If published, go to the public post view
       const urlPath = post.urlPath || 'blog';
       
-      // Go to the public post on the user's subdomain
-      // For local development, we'll use the path-based approach
-      router.push(`/${username}/${urlPath}/${post.slug}`);
+      // Fix the view URL to match the correct route structure
+      // Use the post route instead of direct URL path
+      router.push(`/${username}/post/${post.slug}`);
     } else {
-      // If draft, go to the preview page following best practices
+      // If draft, go to the preview page
       router.push(`/preview/${post.id}`);
     }
   };

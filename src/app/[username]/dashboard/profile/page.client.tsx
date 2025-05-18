@@ -181,30 +181,29 @@ export default function ProfileClient() {
       
       <ProfileHeader user={user} userData={userData} />
       
-      <Tabs defaultValue="username" className="mt-6">
+      <Tabs defaultValue="account" className="mt-6">
         <TabsList className="mb-4">
-          <TabsTrigger value="username">Username</TabsTrigger>
-          <TabsTrigger value="info">Personal Info</TabsTrigger>
+          <TabsTrigger value="account">Account Info</TabsTrigger>
           <TabsTrigger value="verification">Verification</TabsTrigger>
           <TabsTrigger value="social">Social Links</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="username" className="space-y-4">
-          <UsernameForm 
-            user={user} 
-            userData={userData} 
-            onSubmit={handleUpdateUsername} 
-            isLoading={isLoading} 
-          />
-        </TabsContent>
-        
-        <TabsContent value="info" className="space-y-4">
-          <ProfileInfoForm
-            user={user}
-            userData={userData}
-            onSubmit={handleUpdateProfileInfo}
-            isLoading={isLoading}
-          />
+        <TabsContent value="account" className="space-y-4">
+          <div className="grid gap-6">
+            <UsernameForm 
+              user={user} 
+              userData={userData} 
+              onSubmit={handleUpdateUsername} 
+              isLoading={isLoading} 
+            />
+            
+            <ProfileInfoForm
+              user={user}
+              userData={userData}
+              onSubmit={handleUpdateProfileInfo}
+              isLoading={isLoading}
+            />
+          </div>
         </TabsContent>
         
         <TabsContent value="verification" className="space-y-4">

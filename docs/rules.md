@@ -81,6 +81,21 @@ For optimal performance, create a minimal CSS approach using system fonts and ef
 
 
 ---
-We will design our first theme, the minimal theme, adding blocks should be optional, if the user is okay with what the theme has there might be no need for them to add block, they'll just need to edit or add content in markdown to their selected theme.
+
+We will design our first theme, the minimal theme, adding blocks should be optional, if the user is okay with what the theme has there might be no need for them to add block, they'll just need to edit or add content in markdown to their selected theme. The theme will be designed with css and very minimal javascript, to improve our load time and make the subdomain site lightweight.
 
 
+
+
+- Do not go above these instructions. Make sure you use best practices, when in doubt, read the next js documentation, stack overflow or tailwind css articles.
+
+- No page should have lines of code above 250 lines. Break code down into smaller components when the lines will max 250 lines.
+
+- No unfinished codes, use minimal javascript and only when needed. Add proper error handling. 
+
+- Be sure to use the components in #ui folder, if any of the components you use will be reused, make sure to create a component for it under the #ui folder
+
+
+---
+
+since w

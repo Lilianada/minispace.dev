@@ -32,7 +32,7 @@ export default function EditPostPage({ postId }: EditPostPageProps) {
       
       try {
         setIsLoading(true);
-        const postRef = doc(db, 'posts', postId);
+        const postRef = doc(db, 'Users', user.uid, 'posts', postId);
         const postSnap = await getDoc(postRef);
         
         if (!postSnap.exists()) {
@@ -48,14 +48,25 @@ export default function EditPostPage({ postId }: EditPostPageProps) {
           return;
         }
         
-        // Format dates for the form
-        setPost({
+        // Format dates for the form and ensure all required fields are present
+        console.log('Post data found:', postData);
+        const formattedPost = {
           id: postSnap.id,
           ...postData,
+          title: postData.title || '',
+          content: postData.content || '',
+          slug: postData.slug || '',
+          excerpt: postData.excerpt || '',
+          urlPath: postData.urlPath || 'blog',
+          tags: postData.tags || [],
+          coverImage: postData.coverImage || '',
+          customCSS: postData.customCSS || '',
           createdAt: postData.createdAt?.toDate() || new Date(),
           updatedAt: postData.updatedAt?.toDate() || new Date(),
           publishedAt: postData.publishedAt?.toDate() || null
-        });
+        };
+        console.log('Formatted post for form:', formattedPost);
+        setPost(formattedPost);
       } catch (err) {
         console.error('Error fetching blog post:', err);
         setError('Failed to load blog post');

@@ -10,9 +10,10 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { getDashboardPath } from '@/lib/route-utils';
 import PostsFilters from './PostsFilters';
-import PostItem from './PostItem';
 import PostsEmptyState from './PostsEmptyState';
 import PostsLoading from './PostsLoading';
+import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuSeparator } from '../ui/dropdown-menu';
+import { MoreVertical, Eye, Edit, Globe, FileText, Trash } from 'lucide-react';
 
 export interface Post {
   id: string;
@@ -284,8 +285,10 @@ export default function PostsList({ initialPosts }: PostsListProps) {
             </thead>
             <tbody>
               {posts.map((post) => {
-                const postUrl = `/dashboard/posts/${post.id}/edit`;
-                const viewUrl = `/post/${post.slug}`;
+                const postUrl = getDashboardPath(`posts/${post.id}/edit`);
+                // Extract username for view URL
+                const username = typeof window !== 'undefined' ? localStorage.getItem('username') : '';
+                const viewUrl = `/${username}/post/${post.slug}`;
                 const statusColor = post.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800';
                 const formattedDate = new Date(post.createdAt).toLocaleDateString('en-US', {
                   month: 'short',
@@ -320,41 +323,61 @@ export default function PostsList({ initialPosts }: PostsListProps) {
                     </td>
                     <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        {post.status === 'published' && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => window.open(viewUrl, '_blank')}
-                          >
-                            View
-                          </Button>
-                        )}
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => router.push(postUrl)}
-                        >
-                          Edit
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => {
-                            if (confirm(`Are you sure you want to delete "${post.title}"?`)) {
-                              deletePost(post.id)
-                                .then(() => handlePostDeleted(post.id))
-                                .catch((err: Error) => {
-                                  toast({
-                                    title: 'Error',
-                                    description: err.message || 'Failed to delete post',
-                                    variant: 'destructive'
-                                  });
-                                });
-                            }
-                          }}
-                        >
-                          Delete
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {post.status === 'published' && (
+                              <DropdownMenuItem onClick={() => window.open(viewUrl, '_blank')}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                View
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem onClick={() => router.push(postUrl)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {
+                              const newStatus = post.status === 'published' ? 'draft' : 'published';
+                              handlePostStatusChanged(post.id, newStatus);
+                            }}>
+                              {post.status === 'published' ? (
+                                <>
+                                  <FileText className="h-4 w-4 mr-2" />
+                                  Unpublish
+                                </>
+                              ) : (
+                                <>
+                                  <Globe className="h-4 w-4 mr-2" />
+                                  Publish
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              className="text-red-600"
+                              onClick={() => {
+                                if (confirm(`Are you sure you want to delete "${post.title}"?`)) {
+                                  deletePost(post.id)
+                                    .then(() => handlePostDeleted(post.id))
+                                    .catch((err: Error) => {
+                                      toast({
+                                        title: 'Error',
+                                        description: err.message || 'Failed to delete post',
+                                        variant: 'destructive'
+                                      });
+                                    });
+                                }
+                              }}
+                            >
+                              <Trash className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </td>
                   </tr>

@@ -73,52 +73,76 @@ export function SocialLinksForm({ user, userData, onSubmit, isLoading }: SocialL
             <Label htmlFor="twitter" className="flex items-center gap-2">
               <Twitter className="h-4 w-4" /> Twitter
             </Label>
-            <Input
-              id="twitter"
-              placeholder="https://twitter.com/yourusername"
-              value={links.twitter}
-              onChange={(e) => handleChange('twitter', e.target.value)}
-              disabled={isLoading}
-            />
+            <div className="flex">
+              <div className="bg-gray-100 text-gray-700 flex items-center px-3 rounded-l-md border border-r-0 border-input">
+                twitter.com/
+              </div>
+              <Input
+                id="twitter"
+                className="rounded-l-none"
+                placeholder="username"
+                value={links.twitter}
+                onChange={(e) => handleChange('twitter', e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
           </div>
           
           <div className="grid gap-2">
             <Label htmlFor="github" className="flex items-center gap-2">
               <Github className="h-4 w-4" /> GitHub
             </Label>
-            <Input
-              id="github"
-              placeholder="https://github.com/yourusername"
-              value={links.github}
-              onChange={(e) => handleChange('github', e.target.value)}
-              disabled={isLoading}
-            />
+            <div className="flex">
+              <div className="bg-gray-100 text-gray-700 flex items-center px-3 rounded-l-md border border-r-0 border-input">
+                github.com/
+              </div>
+              <Input
+                id="github"
+                className="rounded-l-none"
+                placeholder="username"
+                value={links.github}
+                onChange={(e) => handleChange('github', e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
           </div>
           
           <div className="grid gap-2">
             <Label htmlFor="linkedin" className="flex items-center gap-2">
               <Linkedin className="h-4 w-4" /> LinkedIn
             </Label>
-            <Input
-              id="linkedin"
-              placeholder="https://linkedin.com/in/yourusername"
-              value={links.linkedin}
-              onChange={(e) => handleChange('linkedin', e.target.value)}
-              disabled={isLoading}
-            />
+            <div className="flex">
+              <div className="bg-gray-100 text-gray-700 flex items-center px-3 rounded-l-md border border-r-0 border-input">
+                linkedin.com/in/
+              </div>
+              <Input
+                id="linkedin"
+                className="rounded-l-none"
+                placeholder="username"
+                value={links.linkedin}
+                onChange={(e) => handleChange('linkedin', e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
           </div>
           
           <div className="grid gap-2">
             <Label htmlFor="instagram" className="flex items-center gap-2">
               <Instagram className="h-4 w-4" /> Instagram
             </Label>
-            <Input
-              id="instagram"
-              placeholder="https://instagram.com/yourusername"
-              value={links.instagram}
-              onChange={(e) => handleChange('instagram', e.target.value)}
-              disabled={isLoading}
-            />
+            <div className="flex">
+              <div className="bg-gray-100 text-gray-700 flex items-center px-3 rounded-l-md border border-r-0 border-input">
+                instagram.com/
+              </div>
+              <Input
+                id="instagram"
+                className="rounded-l-none"
+                placeholder="username"
+                value={links.instagram}
+                onChange={(e) => handleChange('instagram', e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
           </div>
         </CardContent>
         
