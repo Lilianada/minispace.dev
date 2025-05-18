@@ -1,7 +1,5 @@
-// 'use client';
-
 import { Metadata } from 'next';
-import PostsList from '@/components/posts-page/PostsList';
+import PostsPageClient from './page.client';
 
 export const metadata: Metadata = {
   title: 'Manage Posts | Minispace',
@@ -9,9 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function PostsPage() {
-  return (
-    <div className="container py-6">
-      <PostsList />
-    </div>
-  );
+  return <PostsPageClient />;
 }
