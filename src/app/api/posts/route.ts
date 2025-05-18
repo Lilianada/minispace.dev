@@ -31,27 +31,81 @@ export async function GET(request: Request) {
     const page = Number(searchParams.get('page') || '1');
     const limit = Number(searchParams.get('limit') || '10');
     
-    // Basic test query to debug
+    // Get query parameters
+    const status = searchParams.get('status');
+    const sort = searchParams.get('sort') || 'newest';
+    const search = searchParams.get('search') || '';
+    const offset = (page - 1) * limit;
+    
     try {
-      // Just try to get any documents to confirm Firestore is working
-      const snapshot = await adminDb.collection('posts')
-        .limit(limit)
-        .get();
+      // Create base query for user's posts
+      let postsQuery = adminDb.collection('posts')
+        .where('authorId', '==', authUser.uid);
       
-      const posts = snapshot.docs.map(doc => ({
+      // Apply status filter if specified
+      if (status && status !== 'all') {
+        postsQuery = postsQuery.where('status', '==', status);
+      }
+      
+      // Apply sorting
+      if (sort === 'oldest') {
+        postsQuery = postsQuery.orderBy('createdAt', 'asc');
+      } else if (sort === 'a-z') {
+        postsQuery = postsQuery.orderBy('title', 'asc');
+      } else {
+        // Default: newest first
+        postsQuery = postsQuery.orderBy('createdAt', 'desc');
+      }
+      
+      // Get total count first (for pagination)
+      const totalSnapshot = await postsQuery.get();
+      const total = totalSnapshot.size;
+      const totalPages = Math.ceil(total / limit);
+      
+      // Apply pagination
+      postsQuery = postsQuery.limit(limit).offset(offset);
+      
+      // Execute query
+      const snapshot = await postsQuery.get();
+      
+      // Map documents to posts with proper typing
+      interface Post {
+        id: string;
+        title?: string;
+        excerpt?: string;
+        content?: string;
+        tags?: string[];
+        authorId: string;
+        status: string;
+        createdAt: any;
+        updatedAt: any;
+        [key: string]: any; // Allow other properties
+      }
+      
+      let posts = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
-      }));
+      })) as Post[];
+      
+      // Apply search filter client-side (if needed)
+      if (search) {
+        const searchLower = search.toLowerCase();
+        posts = posts.filter(post => {
+          return (
+            (post.title?.toLowerCase() || '').includes(searchLower) ||
+            (post.excerpt?.toLowerCase() || '').includes(searchLower) ||
+            (post.content?.toLowerCase() || '').includes(searchLower) ||
+            post.tags?.some((tag: string) => tag.toLowerCase().includes(searchLower))
+          );
+        });
+      }
       
       return NextResponse.json({
         success: true,
-        userId: authUser.uid,
         posts,
-        pagination: {
-          page,
-          limit,
-          total: posts.length,
-        }
+        total,
+        totalPages,
+        currentPage: page,
       });
     } catch (firestoreError) {
       console.error('Firestore error:', firestoreError);
@@ -62,17 +116,20 @@ export async function GET(request: Request) {
       // Log detailed error for server logs but return generic message to client
       console.error('Detailed Firestore error:', errorMessage);
       
+      // Determine if this is a permissions issue
+      const isPermissionsError = errorMessage.includes('permission') || errorMessage.includes('access') || errorMessage.includes('unauthorized');
+      
       return NextResponse.json({ 
         success: false,
-        error: 'Database error',
-        message: 'Unable to retrieve posts. Please try again later.',
+        error: isPermissionsError ? 'Permission denied' : 'Database error',
+        message: isPermissionsError 
+          ? 'You do not have permission to access these posts.' 
+          : 'Unable to retrieve posts. Please try again later.',
         posts: [],
-        pagination: {
-          page,
-          limit,
-          total: 0,
-        }
-      }, { status: 500 });
+        total: 0,
+        totalPages: 1,
+        currentPage: page
+      }, { status: isPermissionsError ? 403 : 500 });
     }
   } catch (error) {
     console.error('API error:', error);
@@ -86,11 +143,9 @@ export async function GET(request: Request) {
       error: 'Server error',
       message: 'An error occurred while processing your request. Please try again later.',
       posts: [],
-      pagination: {
-        page: 1,
-        limit: 10,
-        total: 0,
-      }
+      total: 0,
+      totalPages: 1,
+      currentPage: 1
     }, { status: 500 });
   }
 }

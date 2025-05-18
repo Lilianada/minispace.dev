@@ -231,6 +231,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem('authTokenTimestamp');
       localStorage.removeItem('username');
       console.log('Auth data removed from localStorage and cookies');
+      
+      // Redirect to discover page after logout
+      window.location.href = '/discover';
     } catch (error) {
       const typedError = error as { message: string };
       throw new Error(typedError.message || "Failed to log out");

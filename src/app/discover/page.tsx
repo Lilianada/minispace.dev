@@ -1,115 +1,286 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/landing-page/navbar';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { mockPosts } from '../../../utils/mock-data';   
 
-// Mock data for illustration
-// In a real application, you would fetch this from your database
-const mockArticles = Array.from({ length: 100 }, (_, i) => ({
-    id: i + 1,
-    title: `Article ${i + 1}`,
-    excerpt: `This is a brief description of article ${i + 1}...`,
-    authorName: `Author ${(i % 10) + 1}`,
-    dateCreated: new Date(2023, (i % 12), (i % 28) + 1).toISOString(),
-}));
-
-export default function ArticlesPage() {
-    const [searchQuery, setSearchQuery] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
-    const articlesPerPage = 25;
-    // const router = useRouter();
-
-    // Filter articles based on search query
-    const filteredArticles = mockArticles.filter(article =>
-        article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        article.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        article.authorName.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    // Get current articles for pagination
-    const indexOfLastArticle = currentPage * articlesPerPage;
-    const indexOfFirstArticle = indexOfLastArticle - articlesPerPage;
-    const currentArticles = filteredArticles.slice(indexOfFirstArticle, indexOfLastArticle);
-
-    // Handle pagination
-    const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
-
-
-    return (
-        <>
-            <Navbar />
-        <div className="container mx-auto px-4 py-8">
-            
-            <div className="my-8">
-                <h1 className="text-3xl font-bold mb-4">Discover Articles</h1>
-                <p className="text-lg mb-6">
-                    Explore insightful posts from the minispace community. Find content on various topics
-                    written by our talented authors.
-                </p>
-                
-                <div className="relative mb-8">
-                    <Input
-                        type="text"
-                        placeholder="Search articles by title, content or author..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full p-4"
-                    />
-                </div>
-            </div>
-
-            <div className="space-y-6">
-                {currentArticles.map((article) => (
-                    <div key={article.id} className="border rounded-lg p-6 flex justify-between">
-                        <div className="flex flex-col">
-                            <h2 className="text-xl font-semibold">{article.title}</h2>
-                            <p className="text-gray-600 mt-2">{article.excerpt}</p>
-                            <p className="text-sm text-gray-500 mt-auto">By {article.authorName}</p>
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-500">
-                                {new Date(article.dateCreated).toLocaleDateString()}
-                            </p>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {filteredArticles.length > articlesPerPage && (
-                <div className="flex justify-center my-8">
-                    <div className="flex space-x-2">
-                        {Array.from({ length: Math.ceil(filteredArticles.length / articlesPerPage) }, (_, i) => (
-                            <Button
-                                key={i + 1}
-                                onClick={() => paginate(i + 1)}
-                                variant={currentPage === i + 1 ? "default" : "outline"}
-                            >
-                                {i + 1}
-                            </Button>
-                        ))}
-                    </div>
-                </div>
-            )}
-        </div>
-        </>
-    );
+interface Author {
+  username: string;
+  displayName: string;
 }
 
+interface Post {
+  id: string;
+  title: string;
+  excerpt?: string;
+  content?: string;
+  authorId: string;
+  author?: Author;
+  tags?: string[];
+  wordCount?: number;
+  readTime?: number;
+  createdAt: string;
+  updatedAt: string;
+  status: 'published' | 'draft';
+}
 
-// This page needs content
+export default function DiscoverPage() {
+  const router = useRouter();
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const postsPerPage = 25;
+  const [useMockData, setUseMockData] = useState(true); // Flag to use mock data
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'a-z'>('newest');
 
-// This page is meant to display a list of posts made by minispace users that anyone can access and read whether or not they are authenticated.
+  // Fetch discover posts
+  const fetchPosts = async () => {
+    setLoading(true);
+    
+    // Use mock data for visualization
+    if (useMockData) {
+      setTimeout(() => {
+        // Get all posts
+        setPosts(mockPosts);
+        setError(null);
+        setLoading(false);
+      }, 500); // Simulate network delay
+      
+      return;
+    }
+    
+    // Real data fetching logic
+    try {
+      // Build query parameters
+      const queryParams = new URLSearchParams();
+      queryParams.set('limit', postsPerPage.toString());
+      
+      // Fetch posts from the discover collection
+      const response = await fetch(`/api/discover?${queryParams.toString()}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch discover posts');
+      }
+      
+      const data = await response.json();
+      
+      setPosts(data.posts || []);
+      setError(null); // Clear any previous errors
+    } catch (err) {
+      console.error('Error fetching discover posts:', err);
+      // Don't set an error message, just clear the posts
+      setPosts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-// The posts will be listed out in a list formatted like this -
+  // Filter and sort posts
+  useEffect(() => {
+    if (posts.length > 0) {
+      let filtered = [...posts];
+      
+      // Apply search filter
+      if (searchQuery) {
+        const searchLower = searchQuery.toLowerCase();
+        filtered = filtered.filter(post => 
+          post.title.toLowerCase().includes(searchLower) || 
+          (post.excerpt && post.excerpt.toLowerCase().includes(searchLower)) ||
+          (post.author?.displayName && post.author.displayName.toLowerCase().includes(searchLower)) ||
+          (post.tags && post.tags.some(tag => tag.toLowerCase().includes(searchLower)))
+        );
+      }
+      
+      // Apply sorting
+      if (sortBy === 'newest') {
+        filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      } else if (sortBy === 'oldest') {
+        filtered.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      } else if (sortBy === 'a-z') {
+        filtered.sort((a, b) => a.title.localeCompare(b.title));
+      }
+      
+      // Update filtered posts
+      setFilteredPosts(filtered);
+      
+      // Calculate pagination
+      const totalFilteredPages = Math.max(1, Math.ceil(filtered.length / postsPerPage));
+      setTotalPages(totalFilteredPages);
+      
+      // Adjust current page if needed
+      if (currentPage > totalFilteredPages) {
+        setCurrentPage(1);
+      }
+    }
+  }, [posts, searchQuery, sortBy, currentPage, postsPerPage]);
+  
+  // Initial fetch on component mount
+  useEffect(() => {
+    fetchPosts();
+  }, []);
 
-// left side (arranged in a column): title, exerpt, name of author,
-// right side: date created,
-// There'll be a navbar as well which is the same one used in the '/' page. It'll have a small introduction to the discover page of minispace and a search bar under the intro.
+  // Handle search input change
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1); // Reset to first page when search changes
+  };
+  
+  // Handle sort change
+  const handleSortChange = (value: 'newest' | 'oldest' | 'a-z') => {
+    setSortBy(value);
+    setCurrentPage(1); // Reset to first page when sort changes
+  };
 
-// The articles will have a pagination, 25 articles per pagination, the pagination doesn't open a new page, it reveals more posts.
-// The search bar will be used to search for articles by title, content or author. The search bar will be a controlled component and will update the state of the articles displayed based on the search query.
-// The articles will be fetched from the database and displayed in a list format. The articles will be paginated, 25 articles per page. The pagination will be done using the usePagination hook from react-query.
-// This page is where all users who logout should be routed to because the current signout doesn't route users anywhere. So make sure after a successful signout, users will be routed to '/discover' page.
+  // Handle pagination
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+
+  return (
+    <main className="flex min-h-screen flex-col">
+      <Navbar activePage="discover" />
+      
+      <div className="container max-w-4xl mx-auto px-4 py-12">
+        {/* Minimalist header and search */}
+        <div className="space-y-8 mb-16">
+          <header>
+            <h1 className="text-3xl font-semibold tracking-tight">Discover</h1>
+            <p className="text-muted-foreground">
+              Explore a curated selection of posts from Minispace users.
+            </p>
+          </header>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Input
+                type="text"
+                placeholder="Search by title, author, or tag..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+                className="w-full bg-background/50 border-border rounded-md focus-visible:ring-0 focus-visible:border-primary"
+              />
+            </div>
+            <div className="flex gap-2">
+              <select 
+                value={sortBy}
+                onChange={(e) => handleSortChange(e.target.value as 'newest' | 'oldest' | 'a-z')}
+                className="px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="newest">Newest first</option>
+                <option value="oldest">Oldest first</option>
+                <option value="a-z">A to Z</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        {/* Posts list */}
+        <div>
+          {loading ? (
+            <div className="py-8 text-muted-foreground">
+              <p>Loading posts...</p>
+            </div>
+          ) : error ? (
+            <div className="py-8 text-destructive">
+              <p>{error}</p>
+            </div>
+          ) : posts.length === 0 ? (
+            <div className="py-8 text-muted-foreground">
+              <div>
+                <p className="text-lg">No posts available yet</p>
+                <p className="text-sm mt-2">Be the first to create content on Minispace!</p>
+              </div>
+            </div>
+          ) : filteredPosts.length === 0 ? (
+            <div className="py-8 text-muted-foreground">
+              <p>No posts found matching "{searchQuery}". Try a different search term.</p>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-12">
+                {/* Get paginated posts */}
+                {filteredPosts
+                  .slice((currentPage - 1) * postsPerPage, currentPage * postsPerPage)
+                  .map((post) => (
+                  <div key={post.id} className="group">
+                    <div className="cursor-pointer" onClick={() => router.push(`/blog/${post.id}`)}>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h2 className="text-xl font-medium group-hover:text-primary transition-colors">
+                            {post.title}
+                          </h2>
+                          <div className="flex items-baseline mt-1">
+                            <span className="text-sm">by {post.author?.displayName || 'Unknown'} </span>
+                            <span className="text-xs font-serif italic ml-1 text-muted-foreground">({post.author?.username || 'unknown'}.minispace.dev)</span>
+                          </div>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {new Date(post.createdAt).toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                          })}
+                        </div>
+                      </div>
+                      
+                      {post.excerpt && (
+                        <p className="mt-2 text-muted-foreground">
+                          {post.excerpt}
+                        </p>
+                      )}
+                      
+                      <div className="flex justify-between items-center mt-3">
+                        <div className="flex flex-wrap gap-x-2 gap-y-1">
+                          {post.tags?.map((tag, index) => (
+                            <span key={index} className="text-xs text-muted-foreground">
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {post.wordCount} words — {post.readTime} mins read
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-between items-center mt-16 text-sm">
+                  <button 
+                    className="text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    ← Previous
+                  </button>
+                  
+                  <div className="text-muted-foreground">
+                    Page {currentPage} of {totalPages}
+                  </div>
+                  
+                  <button 
+                    className="text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next →
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+}

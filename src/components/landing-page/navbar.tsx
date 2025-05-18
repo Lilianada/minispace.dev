@@ -3,7 +3,11 @@
 import Link from 'next/link';
 import { useState } from 'react';
 
-export default function Navbar() {
+interface NavbarProps {
+  activePage?: 'home' | 'discover' | 'pricing' | 'signin' | 'signup';
+}
+
+export default function Navbar({ activePage = 'home' }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -36,16 +40,28 @@ export default function Navbar() {
 
         {/* Desktop navigation */}
         <div className="hidden space-x-6 md:flex items-center">
-          <Link href="/discover" className="text-sm font-medium transition-colors hover:text-accent">
+          <Link 
+            href="/discover" 
+            className={`text-sm font-medium transition-colors ${activePage === 'discover' ? 'text-primary italic font-bold' : 'hover:text-accent'}`}
+          >
             Discover
           </Link>
-          <Link href="/pricing" className="text-sm font-medium transition-colors hover:text-accent">
+          <Link 
+            href="/pricing" 
+            className={`text-sm font-medium transition-colors ${activePage === 'pricing' ? 'text-primary italic font-bold' : 'hover:text-accent'}`}
+          >
             Pricing
           </Link>
-          <Link href="/signin" className="text-sm font-medium transition-colors hover:text-accent">
+          <Link 
+            href="/signin" 
+            className={`text-sm font-medium transition-colors ${activePage === 'signin' ? 'text-primary italic font-bold' : 'hover:text-accent'}`}
+          >
             Login
           </Link>
-          <Link href="/signup" className="border border-input rounded-md px-3 py-1 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground">
+          <Link 
+            href="/signup" 
+            className={`border border-input rounded-md px-3 py-1 text-sm font-medium transition-colors ${activePage === 'signup' ? 'bg-accent text-accent-foreground' : 'hover:bg-accent hover:text-accent-foreground'}`}
+          >
             Sign up
           </Link>
         </div>
@@ -56,28 +72,28 @@ export default function Navbar() {
             <div className="flex flex-col space-y-4 p-4">
               <Link 
                 href="/discover" 
-                className="text-sm font-medium transition-colors hover:text-accent"
+                className={`text-sm font-medium transition-colors ${activePage === 'discover' ? 'text-primary italic font-bold' : 'hover:text-accent'}`}
                 onClick={() => setIsOpen(false)}
               >
                 Discover
               </Link>
               <Link 
                 href="/pricing" 
-                className="text-sm font-medium transition-colors hover:text-accent"
+                className={`text-sm font-medium transition-colors ${activePage === 'pricing' ? 'text-primary font-semibold' : 'hover:text-accent'}`}
                 onClick={() => setIsOpen(false)}
               >
                 Pricing
               </Link>
               <Link 
                 href="/signin" 
-                className="text-sm font-medium transition-colors hover:text-accent"
+                className={`text-sm font-medium transition-colors ${activePage === 'signin' ? 'text-primary font-semibold' : 'hover:text-accent'}`}
                 onClick={() => setIsOpen(false)}
               >
                 Login
               </Link>
               <Link 
                 href="/signup" 
-                className="border border-input rounded-md px-3 py-1 text-sm font-medium text-center transition-colors hover:bg-accent hover:text-accent-foreground"
+                className={`border border-input rounded-md px-3 py-1 text-sm font-medium text-center transition-colors ${activePage === 'signup' ? 'bg-accent text-accent-foreground' : 'hover:bg-accent hover:text-accent-foreground'}`}
                 onClick={() => setIsOpen(false)}
               >
                 Sign up

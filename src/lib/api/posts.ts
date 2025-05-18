@@ -199,7 +199,7 @@ export async function getPosts(filters: PostFilters = {}): Promise<{
       };
       
       const authCookie = getCookie('authToken');
-      const localToken = localStorage.getItem('authToken');
+      const localToken = localStorage.getItem('authToken') || undefined; // Convert null to undefined
       
       if (!authCookie && !localToken) {
         console.error('User not logged in - no auth token available');
@@ -232,13 +232,20 @@ export async function getPosts(filters: PostFilters = {}): Promise<{
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('Posts API response error:', response.status);
+      console.error('Posts API response error:', response.status, errorData);
       
       // Handle common HTTP error codes with user-friendly messages
       if (response.status === 401) {
         throw new Error('Authentication required - please sign in again');
       } else if (response.status === 403) {
         throw new Error('You do not have permission to access this resource');
+      } else if (response.status === 500) {
+        // Check if we have a more specific error message from the server
+        if (errorData.message) {
+          throw new Error(`Server error: ${errorData.message}`);
+        } else {
+          throw new Error('There was a problem with the server. Please try again later.');
+        }
       } else {
         throw new Error(errorData.message || `Failed to load posts (${response.status})`);
       }

@@ -31,7 +31,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-import { deletePost, updatePostStatus } from '@/lib/api/posts';
+import { deletePost, updatePostStatus } from '@/lib/api/dashboard-posts';
 import { useToast } from '@/hooks/use-toast';
 import { getDashboardPath } from '@/lib/route-utils';
 

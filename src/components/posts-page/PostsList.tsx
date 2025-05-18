@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getPosts, Post, PostFilters } from '@/lib/api/posts';
+import { fetchUserPosts, Post, PostFilters } from '@/lib/api/dashboard-posts';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -40,16 +40,58 @@ export default function PostsList() {
     return getDashboardPath('posts/new-post');
   };
   
+  // Track if component is mounted to prevent state updates after unmount
+  const isMounted = useRef(true);
+  
+  // Track previous filter values to prevent unnecessary refetches
+  const prevFilters = useRef({ page, status, sort, search });
+  
   // Load posts when parameters change
   useEffect(() => {
+    // Set up cleanup function
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+  
+  // Separate effect for fetching posts
+  useEffect(() => {
+    // Check if filters actually changed
+    const filtersChanged = 
+      prevFilters.current.page !== page ||
+      prevFilters.current.status !== status ||
+      prevFilters.current.sort !== sort ||
+      prevFilters.current.search !== search;
+    
+    if (!filtersChanged) {
+      return; // Skip if filters haven't changed
+    }
+    
+    // Update previous filters
+    prevFilters.current = { page, status, sort, search };
+    
+    // Set a timeout to ensure we don't show loading state indefinitely
+    let loadingTimeout: NodeJS.Timeout | null = null;
+    
     async function fetchPosts() {
       try {
         setIsLoading(true);
         setError(null);
         
+        // Set a timeout to ensure we exit loading state even if the request takes too long
+        loadingTimeout = setTimeout(() => {
+          if (isMounted.current) {
+            setIsLoading(false);
+            // If we still have no posts after timeout, make sure it's clear to the user
+            if (!posts || posts.length === 0) {
+              console.log('No posts found after timeout');
+            }
+          }
+        }, 3000); // 3 second timeout
+        
         console.log('Fetching posts with filters:', { page, status, sort, search });
         
-        const result = await getPosts({
+        const result = await fetchUserPosts({
           page,
           limit: 10,
           status,
@@ -57,32 +99,52 @@ export default function PostsList() {
           search
         });
         
-        // Check for API-level errors that were converted to normal responses
-        if (result.error || result.status === 'error') {
-          setError(result.error || 'There was a problem loading your posts');
-          setPosts([]);
-        } else {
-          setPosts(result.posts || []);
+        // Clear the timeout since we got a response
+        if (loadingTimeout) {
+          clearTimeout(loadingTimeout);
+          loadingTimeout = null;
         }
         
-        setTotalPages(result.totalPages || 1);
-        setCurrentPage(result.currentPage || page);
-        setTotalPosts(result.total || 0);
+        // Only update state if component is still mounted
+        if (isMounted.current) {
+          setPosts(result.posts || []);
+          setTotalPages(result.totalPages || 1);
+          setCurrentPage(result.currentPage || page);
+          setTotalPosts(result.total || 0);
+          setIsLoading(false); // Ensure loading state is cleared
+        }
+        
       } catch (err) {
         console.error('Error fetching posts:', err);
-        setError('Failed to load posts. Please try again.');
-        setPosts([]);
-        toast({
-          title: 'Error',
-          description: 'Failed to load posts',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
+        
+        // Clear the timeout since we got a response
+        if (loadingTimeout) {
+          clearTimeout(loadingTimeout);
+          loadingTimeout = null;
+        }
+        
+        if (isMounted.current) {
+          const errorMessage = err instanceof Error ? err.message : 'Failed to load posts. Please try again.';
+          setError(errorMessage);
+          setPosts([]);
+          setIsLoading(false); // Ensure loading state is cleared
+          toast({
+            title: 'Error',
+            description: errorMessage,
+            variant: 'destructive',
+          });
+        }
       }
     }
     
     fetchPosts();
+    
+    // Clean up timeout if component unmounts
+    return () => {
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+      }
+    };
   }, [page, status, sort, search, toast]);
   
   // Handle page change
