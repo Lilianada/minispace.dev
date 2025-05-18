@@ -34,7 +34,7 @@ const googleProvider = new GoogleAuthProvider();
 export interface UserData {
   username: string; // Added username property to align with auth-context.tsx
   uid: string;
-  email: string | null;
+  email: string; // Changed from string | null to string to match auth-context.tsx
   displayName: string | null;
   photoURL: string | null;
   createdAt?: string;
@@ -132,10 +132,10 @@ export const createUserDocument = async (user: User) => {
   const userRef = doc(db, 'Users', user.uid); // Changed from 'users' to 'Users' to match the collection name used in auth-context.tsx
   const userData = {
     uid: user.uid,
-    email: user.email,
+    email: user.email || `${user.uid}@example.com`, // Ensure email is never null
     // Generate a username from email or display name if not available
-    username: user.email?.split('@')[0] || `user_${user.uid.substring(0, 8)}`,
-    displayName: user.displayName || user.email?.split('@')[0],
+    username: (user.email ? user.email.split('@')[0] : `user_${user.uid.substring(0, 8)}`),
+    displayName: user.displayName || (user.email ? user.email.split('@')[0] : null),
     photoURL: user.photoURL,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
@@ -156,10 +156,25 @@ export const createUserDocument = async (user: User) => {
 export const updateUserLastLogin = async (uid: string) => {
   try {
     const userRef = doc(db, 'users', uid);
-    await updateDoc(userRef, {
-      lastLogin: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
+    
+    // Check if the document exists first
+    const docSnap = await getDoc(userRef);
+    
+    if (docSnap.exists()) {
+      // Document exists, update it
+      await updateDoc(userRef, {
+        lastLogin: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    } else {
+      // Document doesn't exist, create it
+      await setDoc(userRef, {
+        lastLogin: serverTimestamp(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      console.log(`Created new user document for uid: ${uid}`);
+    }
   } catch (error) {
     console.error('Error updating user last login:', error);
   }
@@ -168,15 +183,22 @@ export const updateUserLastLogin = async (uid: string) => {
 /**
  * Get user data from Firestore
  */
-export const getUserData = async (uid: string): Promise<UserData | null> => {
+export const getUserData = async (uid: string): Promise<any> => {
   try {
     const userRef = doc(db, 'Users', uid); // Changed from 'users' to 'Users' to match the collection name used in auth-context.tsx
     const userDoc = await getDoc(userRef);
     
     if (userDoc.exists()) {
       const data = userDoc.data();
-      // Ensure the data conforms to the UserData interface
-      return data as UserData;
+      // Transform data to match the UserData interface from auth-context
+      // Ensure email is never null to match the auth-context.tsx UserData type
+      return {
+        ...data,
+        email: data.email || `${uid}@example.com`,
+        // Convert Firestore timestamps to Date objects if needed
+        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : data.updatedAt,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt,
+      };
     }
     
     return null;

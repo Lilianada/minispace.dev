@@ -27,9 +27,6 @@ export default function Footer({
     <footer className="bg-white border-t border-gray-100 py-8">
       <div className="max-w-4xl mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="mb-4 md:mb-0">
-            <p className="text-gray-600">{text}</p>
-          </div>
           
           {showSocials && (
             <div className="flex space-x-4">

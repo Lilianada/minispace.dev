@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
-import { auth, getUserData, UserData } from '@/lib/auth';
+import { auth, getUserData } from '@/lib/auth';
+import { UserData } from '@/lib/auth-context';
+import { adaptUserData } from '@/lib/type-adapters';
 
 interface UseAuthReturn {
   user: User | null;
@@ -32,7 +34,8 @@ export default function useAuth(): UseAuthReturn {
             setUser(authUser);
             // Fetch additional user data from Firestore
             const data = await getUserData(authUser.uid);
-            setUserData(data);
+            // Use the adapter to ensure consistent types
+            setUserData(adaptUserData(data));
           } else {
             setUser(null);
             setUserData(null);

@@ -240,7 +240,7 @@ Feel free to reach out if you'd like to connect!`,
           type: "back-link",
           title: "Back Link",
           content: {
-            text: "← Back to all posts",
+            text: "Back to all posts",
             link: "/posts",
           },
           order: 4,

@@ -1,0 +1,7 @@
+[
+    {
+      "origin": ["https://minispace.app", "https://*.minispace.app"],
+      "method": ["GET", "PUT", "POST", "DELETE", "HEAD"],
+      "maxAgeSeconds": 3600
+    }
+  ]

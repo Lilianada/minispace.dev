@@ -207,12 +207,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('username', username.toLowerCase());
       console.log('Auth token saved to cookie for new user');
       
-      // Create user document in Firestore
+      // Create user document in Firestore with minimal required fields
       await setDoc(doc(db, "Users", user.uid), {
         username: username.toLowerCase(),
         displayName: username,
         email: email.toLowerCase(),
         createdAt: new Date(),
+        updatedAt: new Date(),
+        photoURL: null,
+        storageUsed: 0, // Track storage usage (starts at 0)
+        storageLimit: 104857600, // 100MB in bytes as default limit
+        // Default theme selection
+        theme: 'light'
       });
       
     } catch (error) {
