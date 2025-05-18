@@ -14,7 +14,9 @@ interface SiteCustomizationPageProps {
 }
 
 export default async function SiteCustomizationPage({ params }: SiteCustomizationPageProps) {
-  const { username } = params;
+  // Await the params object before destructuring
+  const resolvedParams = await Promise.resolve(params);
+  const { username } = resolvedParams;
   
   if (!username) {
     return notFound();

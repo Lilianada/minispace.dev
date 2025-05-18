@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import useAuth from '@/hooks/useAuth';
+import { UserData } from '@/lib/auth-context';
+import { isAuthContextUserData } from '@/lib/type-adapters';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { UserData as AuthContextUserData } from '@/lib/auth-context';
-import { UserData as AuthUserData } from '@/lib/auth';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -44,29 +44,11 @@ export default function SiteCustomizationClient({ username }: { username: string
   const [activeTab, setActiveTab] = useState('theme');
   const [activePage, setActivePage] = useState<string | null>(null);
   
-  const { user, userData: authUserData, loading: authLoading } = useAuth();
+  const { user, userData, loading: authLoading } = useAuth();
   const router = useRouter();
   
-  // Convert UserData from auth.ts to UserData from auth-context.tsx
-  const adaptUserData = (data: AuthUserData | null): AuthContextUserData | null => {
-    if (!data) return null;
-    
-    return {
-      username: data.username,
-      email: data.email || '',  // Convert string | null to string
-      displayName: data.displayName,
-      photoURL: data.photoURL,
-      uid: data.uid,
-      // Add other fields with defaults
-      bio: '',
-      socialLinks: {},
-      updatedAt: new Date(),
-      createdAt: new Date()
-    };
-  };
-  
-  // Adapted userData that matches the expected type
-  const userData = adaptUserData(authUserData);
+  // Ensure userData is of the correct type
+  const validUserData = isAuthContextUserData(userData) ? userData : null;
 
   // Fetch user data and settings
   useEffect(() => {
@@ -200,7 +182,7 @@ export default function SiteCustomizationClient({ username }: { username: string
     <div className="container py-8">
       <div className="space-y-8">
       <h2 className="text-2xl font-semibold">Site Customization</h2>
-        <CustomizationHeader user={user} userData={userData} />
+        <CustomizationHeader user={user} userData={validUserData} />
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6">
             <TabsTrigger value="theme">Theme</TabsTrigger>

@@ -1,10 +1,10 @@
 import { Suspense } from 'react';
 import ProfileClient from './page.client';
-import LoadingDots from '@/components/LoadingDots';
+import LoadingScreen from '@/components/LoadingScreen';
 
 export default function ProfilePage() {
   return (
-    <Suspense fallback={<LoadingDots />}>
+    <Suspense fallback={<LoadingScreen />}>
       <ProfileClient />
     </Suspense>
   );

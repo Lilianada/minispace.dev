@@ -1,9 +1,9 @@
 import React from 'react';
-import WelcomeSection from '../../../components/dashboard-page/WelcomeSection';
-import QuickLinks from '../../../components/dashboard-page/QuickLinks';
-import RecentPosts from '../../../components/dashboard-page/RecentPosts';
+import WelcomeSection from '../../../components/dashboard/WelcomeSection';
+import QuickLinks from '../../../components/dashboard/QuickLinks';
+import RecentPosts from '../../../components/dashboard/RecentPosts';
 import { Metadata } from 'next';
-import TrafficSources from '@/components/dashboard-page/TrafficSources';
+import TrafficSources from '@/components/dashboard/TrafficSources';
 
 export const metadata: Metadata = {
   title: 'Dashboard | Minispace',

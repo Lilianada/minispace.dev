@@ -12,9 +12,10 @@ import { useToast } from '@/hooks/use-toast';
 export default function ThemePreviewPage({ params }: { params: Promise<{ username: string; themeId: string }> }) {
   // Unwrap params using React.use
   const unwrappedParams = React.use(params);
+  
   const { username, themeId } = unwrappedParams;
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, userData } = useAuth();
   const { toast } = useToast();
   const [isApplying, setIsApplying] = useState(false);
   
@@ -48,7 +49,7 @@ export default function ThemePreviewPage({ params }: { params: Promise<{ usernam
   const ThemePreviewComponent = theme.preview;
   
   const handleApplyTheme = async () => {
-    if (!user || user.username !== username) {
+    if (!user || !userData || userData.username !== username) {
       toast({
         title: 'Permission denied',
         description: 'You can only update your own site settings.',

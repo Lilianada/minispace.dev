@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Navbar from '@/components/landing-page/navbar';
+import Navbar from '@/components/landing/navbar';
 import { Input } from '@/components/ui/input';
 import { mockPosts } from '../../../utils/mock-data';   
-import LoadingDots from '@/components/LoadingDots';
+import LoadingScreen from '@/components/LoadingScreen';
 
 interface Author {
   username: string;
@@ -186,7 +186,7 @@ export default function DiscoverPage() {
         <div>
           {loading ? (
             <div className="py-8 text-muted-foreground">
-             <LoadingDots />
+             <LoadingScreen />
             </div>
           ) : error ? (
             <div className="py-8 text-destructive">

@@ -1,6 +1,6 @@
 'use client';
-import Navbar from '@/components/landing-page/navbar';
-import HeroSection from '@/components/landing-page/hero';
+import Navbar from '@/components/landing/navbar';
+import HeroSection from '@/components/landing/hero';
 
 export default function Home() {
   

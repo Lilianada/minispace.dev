@@ -4,7 +4,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/lib/auth-context';
+import useAuth from '@/hooks/useAuth';
+import { signIn } from '@/lib/auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -14,8 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Form, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader } from '@/components/ui/loader';
-import LoadingDots from '@/components/LoadingDots';
+import LoadingScreen from '@/components/LoadingScreen';
 
 // Form schema
 const formSchema = z.object({
@@ -27,7 +27,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function SignIn() {
   const router = useRouter();
-  const { user, userData, login } = useAuth();
+  const { user, userData, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -48,12 +48,15 @@ export default function SignIn() {
   }, [user, userData, router]);
 
   // Show loading screen while redirecting if user is already signed in
-  if (user) {
+  if (authLoading || (user && !userData)) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <LoadingDots />
-      </div>
+     <LoadingScreen />
     );
+  }
+  
+  // If user is already signed in, show loading screen while useEffect handles redirection
+  if (user && userData) {
+    return <LoadingScreen />;
   }
 
   async function onSubmit(data: FormValues) {
@@ -61,7 +64,7 @@ export default function SignIn() {
     setLoading(true);
 
     try {
-      await login(data.email, data.password);
+      await signIn(data.email, data.password);
       
       // Store login timestamp for token expiration checks
       localStorage.setItem('authTokenTimestamp', Date.now().toString());

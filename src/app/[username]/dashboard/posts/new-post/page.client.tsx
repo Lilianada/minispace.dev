@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import useAuth from '@/hooks/useAuth';
-import PostForm from '@/components/post-page/PostForm';
+import PostForm from '@/components/posts/PostForm';
 
 export default function NewPostPage() {
   const { user, loading } = useAuth();

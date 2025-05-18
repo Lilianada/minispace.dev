@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import PostsList from '@/components/post-page/PostsList';
+import PostsList from '@/components/posts/PostsList';
 import useAuth from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 

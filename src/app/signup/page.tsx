@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/lib/auth-context';
+import useAuth from '@/hooks/useAuth';
+import { signUp } from '@/lib/auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -13,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Form, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import LoadingDots from '@/components/LoadingDots';
+import LoadingScreen from '@/components/LoadingScreen';
 
 // Form schema
 const formSchema = z.object({
@@ -26,7 +27,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function SignUp() {
   const router = useRouter();
-  const { user, userData, signup } = useAuth();
+  const { user, userData, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -49,12 +50,16 @@ export default function SignUp() {
   }, [user, userData, router]);
 
   // Show loading screen while redirecting if user is already signed in
-  if (user) {
+  if (authLoading || (user && !userData)) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <LoadingDots />
-      </div>
+      <LoadingScreen />
     );
+  }
+  
+  if (user && userData) {
+    const dashboardUrl = getDashboardPath();
+    router.push(dashboardUrl);
+    return null;
   }
 
   async function onSubmit(data: FormValues) {
@@ -62,7 +67,7 @@ export default function SignUp() {
     setLoading(true);
 
     try {
-      await signup(data.email, data.username, data.password);
+      await signUp(data.email, data.password, data.username);
       
       // Username should be stored in localStorage during signup
       const username = localStorage.getItem('username');

@@ -43,7 +43,7 @@ export default function ThemesPage({ params }: { params: { username: string } })
     };
 
     fetchThemeSettings();
-  }, [user, toast]);
+  }, [user]);
 
   // Show loading state if user data is still loading
   if (isLoading) {
