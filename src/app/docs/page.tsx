@@ -40,8 +40,8 @@ export default function DocsPage() {
         <DocsSidebar isSidebarOpen={isSidebarOpen} />
 
         {/* Main content */}
-        <div className="flex-1 p-6 md:p-8 lg:p-10 overflow-y-auto">
-          <div className="max-w-3xl mx-auto">
+        <div className="flex-1 p-4 sm:p-6 md:p-8 lg:p-10 overflow-y-auto w-full">
+          <div className="max-w-3xl mx-auto w-full">
             <IntroSection />
             <QuickStartSection />
             <DomainSetupSection />

@@ -1,12 +1,79 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface DocsSidebarProps {
   isSidebarOpen: boolean;
 }
 
+type SectionItem = {
+  id: string;
+  label: string;
+};
+
+type SectionGroup = {
+  title: string;
+  items: SectionItem[];
+};
+
 export default function DocsSidebar({ isSidebarOpen }: DocsSidebarProps) {
+  const [activeSection, setActiveSection] = useState('introduction');
+  
+  // Define all sections in groups
+  const sectionGroups: SectionGroup[] = [
+    {
+      title: 'Getting Started',
+      items: [
+        { id: 'introduction', label: 'Introduction' },
+        { id: 'quick-start', label: 'Quick Start Guide' },
+      ],
+    },
+    {
+      title: 'Hosting',
+      items: [
+        { id: 'hosting-options', label: 'Hosting Options' },
+        { id: 'domain-setup', label: 'Domain Setup' },
+        { id: 'github-pages', label: 'GitHub Pages' },
+      ],
+    },
+    {
+      title: 'Features',
+      items: [
+        { id: 'posts', label: 'Posts & Pages' },
+        { id: 'themes', label: 'Themes' },
+        { id: 'storage', label: 'Storage' },
+      ],
+    },
+    {
+      title: 'Help',
+      items: [
+        { id: 'faq', label: 'FAQ' },
+        { id: 'support', label: 'Support' },
+      ],
+    },
+  ];
+  
+  // Track scroll position to update active section
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = sectionGroups.flatMap(group => group.items);
+      
+      for (const section of sections) {
+        const element = document.getElementById(section.id);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          if (rect.top <= 100 && rect.bottom >= 100) {
+            setActiveSection(section.id);
+            break;
+          }
+        }
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [sectionGroups]);
+  
   return (
     <div className={`
       ${isSidebarOpen ? 'block' : 'hidden'} 
@@ -16,79 +83,29 @@ export default function DocsSidebar({ isSidebarOpen }: DocsSidebarProps) {
       <h3 className="font-medium mb-4">Documentation</h3>
       
       <div className="space-y-1">
-        <div className="mb-4">
-          <h4 className="text-sm font-medium mb-2 text-muted-foreground">Getting Started</h4>
-          <ul className="space-y-1 text-sm">
-            <li>
-              <a href="#introduction" className="block py-1 px-2 rounded hover:bg-accent text-primary font-medium">
-                Introduction
-              </a>
-            </li>
-            <li>
-              <a href="#quick-start" className="block py-1 px-2 rounded hover:bg-accent">
-                Quick Start Guide
-              </a>
-            </li>
-          </ul>
-        </div>
-        
-        <div className="mb-4">
-          <h4 className="text-sm font-medium mb-2 text-muted-foreground">Hosting</h4>
-          <ul className="space-y-1 text-sm">
-            <li>
-              <a href="#hosting-options" className="block py-1 px-2 rounded hover:bg-accent">
-                Hosting Options
-              </a>
-            </li>
-            <li>
-              <a href="#domain-setup" className="block py-1 px-2 rounded hover:bg-accent">
-                Domain Setup
-              </a>
-            </li>
-            <li>
-              <a href="#github-pages" className="block py-1 px-2 rounded hover:bg-accent">
-                GitHub Pages
-              </a>
-            </li>
-          </ul>
-        </div>
-        
-        <div className="mb-4">
-          <h4 className="text-sm font-medium mb-2 text-muted-foreground">Features</h4>
-          <ul className="space-y-1 text-sm">
-            <li>
-              <a href="#posts" className="block py-1 px-2 rounded hover:bg-accent">
-                Posts & Pages
-              </a>
-            </li>
-            <li>
-              <a href="#themes" className="block py-1 px-2 rounded hover:bg-accent">
-                Themes
-              </a>
-            </li>
-            <li>
-              <a href="#storage" className="block py-1 px-2 rounded hover:bg-accent">
-                Storage
-              </a>
-            </li>
-          </ul>
-        </div>
-        
-        <div className="mb-4">
-          <h4 className="text-sm font-medium mb-2 text-muted-foreground">Help</h4>
-          <ul className="space-y-1 text-sm">
-            <li>
-              <a href="#faq" className="block py-1 px-2 rounded hover:bg-accent">
-                FAQ
-              </a>
-            </li>
-            <li>
-              <a href="#support" className="block py-1 px-2 rounded hover:bg-accent">
-                Support
-              </a>
-            </li>
-          </ul>
-        </div>
+        {sectionGroups.map((group) => (
+          <div key={group.title} className="mb-4">
+            <h4 className="text-sm font-medium mb-2 text-muted-foreground">{group.title}</h4>
+            <ul className="space-y-1 text-sm">
+              {group.items.map((item) => {
+                const isActive = activeSection === item.id;
+                return (
+                  <li key={item.id}>
+                    <a 
+                      href={`#${item.id}`} 
+                      className={`block py-1 px-2 rounded transition-colors ${isActive 
+                        ? 'bg-primary text-white font-medium' 
+                        : 'hover:bg-accent hover:text-white'}`}
+                      onClick={() => setActiveSection(item.id)}
+                    >
+                      {item.label}
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
       </div>
     </div>
   );

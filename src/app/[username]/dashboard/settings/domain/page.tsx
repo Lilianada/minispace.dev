@@ -312,6 +312,38 @@ export default function DomainSettingsPage({ params }: { params: { username: str
     }
   };
 
+
+  // Visit the site with the subdomain
+  const visitSubdomain = () => {
+    if (!subdomain) return;
+    window.open(`https://${subdomain}.minispace.dev`, '_blank');
+  };
+
+  // Visit the site with the custom domain
+  const visitCustomDomain = () => {
+    if (!customDomain) return;
+    window.open(`https://${customDomain}`, '_blank');
+  };
+
+  // Render the domain guide link
+  const renderDomainGuideLink = () => (
+    <div className="mt-4 text-sm text-muted-foreground">
+      Need help? <a href="/docs" className="text-primary hover:underline inline-flex items-center">View our domain setup guide <ExternalLink className="ml-1 h-3 w-3" /></a>
+    </div>
+  );
+
+  if (authLoading || isLoading) {
+    return (
+      <div className="container py-10">
+        <h1 className="text-2xl font-bold mb-6">Domain Settings</h1>
+        <div className="grid gap-6">
+          <Skeleton className="h-[200px] w-full" />
+          <Skeleton className="h-[400px] w-full" />
+        </div>
+      </div>
+    );
+  }
+
   // Save subdomain settings
   const saveSubdomainSettings = async () => {
     if (!user) {
@@ -382,24 +414,6 @@ export default function DomainSettingsPage({ params }: { params: { username: str
     }
   };
 
-  // Visit the site with the subdomain
-  const visitSubdomain = () => {
-    if (!subdomain) return;
-    window.open(`https://${subdomain}.minispace.dev`, '_blank');
-  };
-
-  // Visit the site with the custom domain
-  const visitCustomDomain = () => {
-    if (!customDomain) return;
-    window.open(`https://${customDomain}`, '_blank');
-  };
-
-  // Render the domain guide link
-  const renderDomainGuideLink = () => (
-    <div className="mt-4 text-sm text-muted-foreground">
-      Need help? <a href="/docs" className="text-primary hover:underline inline-flex items-center">View our domain setup guide <ExternalLink className="ml-1 h-3 w-3" /></a>
-    </div>
-  );
 
   if (authLoading || isLoading) {
     return (
@@ -418,20 +432,20 @@ export default function DomainSettingsPage({ params }: { params: { username: str
   }
 
   return (
-    <div className="container py-10">
+    <div className="container mx-auto px-4 sm:px-6 py-6">
       <h1 className="text-2xl font-bold mb-6">Domain Settings</h1>
       
-      <div className="grid gap-6">
-        {/* Subdomain Card */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Globe className="h-5 w-5" />
-              <CardTitle>Subdomain</CardTitle>
-            </div>
-            <CardDescription>Choose your free minispace.dev subdomain</CardDescription>
-          </CardHeader>
-          
+      <div className="space-y-6 max-w-4xl">
+      {/* Subdomain Card */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Globe className="h-5 w-5" />
+            <CardTitle>Subdomain</CardTitle>
+          </div>
+          <CardDescription>Choose your free minispace.dev subdomain</CardDescription>
+        </CardHeader>
+        
           <CardContent className="space-y-6">
             <div>
               <Label htmlFor="subdomain">Subdomain</Label>

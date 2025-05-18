@@ -41,8 +41,8 @@ export default function SiteCustomizationClient({ username }: { username: string
   const [userId, setUserId] = useState<string | null>(null);
   const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
   const [siteCustomization, setSiteCustomization] = useState<SiteCustomization | null>(null);
-  const [activeTab, setActiveTab] = useState('theme');
   const [activePage, setActivePage] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState('appearance');
   
   const { user, userData, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -179,105 +179,97 @@ export default function SiteCustomizationClient({ username }: { username: string
   }
 
   return (
-    <div className="container py-8">
-      <div className="space-y-8">
-      <h2 className="text-2xl font-semibold">Site Customization</h2>
-        <CustomizationHeader user={user} userData={validUserData} />
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6">
-            <TabsTrigger value="theme">Theme</TabsTrigger>
-            <TabsTrigger value="pages">Pages</TabsTrigger>
-            <TabsTrigger value="css">Custom CSS</TabsTrigger>
-          </TabsList>
+    <div className="container mx-auto py-6 ">
+      {/* Customization header with preview button */}
+      <CustomizationHeader username={username} />
+      
+      <div className="mt-6 flex flex-col md:flex-row gap-4">
+        {/* WordPress-style sidebar navigation */}
+        <div className="w-full md:w-64 shrink-0">
+          <div className="bg-card border rounded-lg overflow-hidden">
+            <div className="p-4 border-b font-medium">Site Customization</div>
+            <div className="divide-y">
+              <button
+                onClick={() => setActiveSection('appearance')}
+                className={`w-full text-left p-4 flex items-center gap-2 transition-colors ${activeSection === 'appearance' ? 'bg-primary/10 text-primary' : 'hover:bg-accent'}`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span>Appearance</span>
+              </button>
+              
+              <button
+                onClick={() => setActiveSection('pages')}
+                className={`w-full text-left p-4 flex items-center gap-2 transition-colors ${activeSection === 'pages' ? 'bg-primary/10 text-primary' : 'hover:bg-accent'}`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1M19 8l-7 7-7-7" />
+                </svg>
+                <span>Pages</span>
+              </button>
+              
+              <button
+                onClick={() => setActiveSection('custom-css')}
+                className={`w-full text-left p-4 flex items-center gap-2 transition-colors ${activeSection === 'custom-css' ? 'bg-primary/10 text-primary' : 'hover:bg-accent'}`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                </svg>
+                <span>Custom CSS</span>
+              </button>
+            </div>
+          </div>
           
-          <TabsContent value="theme" className="space-y-6">
-            <Tabs defaultValue="blocks" className="w-full">
-              <TabsList className="mb-4">
-                <TabsTrigger value="blocks">Content Blocks</TabsTrigger>
-                <TabsTrigger value="theme">Theme</TabsTrigger>
-                <TabsTrigger value="css">Custom CSS</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="blocks" className="space-y-4">
-                <div className="flex gap-4">
-                  <div className="w-64 shrink-0">
-                    <Card className="p-4">
-                      <PageManager
-                        pages={siteCustomization.pages}
-                        userId={userId}
-                        activePage={activePage}
-                        onPageChange={setActivePage}
-                        onPagesUpdated={(updatedPages) => {
-                          setSiteCustomization({
-                            ...siteCustomization,
-                            pages: updatedPages
-                          });
-                        }}
-                      />
-                    </Card>
-                  </div>
-              
-                  <div className="flex-1">
-                    {activePage && activePage !== '' && siteCustomization.pages[activePage] ? (
-                      <PageBlocksEditor 
-                        key={activePage} /* Add key to force re-render when page changes */
-                        page={siteCustomization.pages[activePage]} 
-                        userId={userId} 
-                      />
-                    ) : (
-                      <div className="p-8 border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-center">
-                        <p className="text-muted-foreground mb-4">Select a page from the sidebar or create a new page to start editing.</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="theme">
+          {/* Page selector (only visible when in pages section) */}
+          {activeSection === 'pages' && (
+            <div className="mt-4 bg-card border rounded-lg overflow-hidden">
+              <div className="p-4 border-b font-medium">Pages</div>
+              <div className="p-4">
+                <PageManager
+                  pages={siteCustomization.pages}
+                  userId={userId}
+                  activePage={activePage}
+                  onPageChange={setActivePage}
+                  onPagesUpdated={(updatedPages) => {
+                    setSiteCustomization({
+                      ...siteCustomization,
+                      pages: updatedPages
+                    });
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* Main content area */}
+        <div className="flex-1">
+          {/* Appearance section */}
+          {activeSection === 'appearance' && (
+            <div className="bg-card border rounded-lg overflow-hidden">
+              <div className="p-4 border-b font-medium">Theme Selection</div>
+              <div className="p-4">
                 <ThemeSelector 
                   currentTheme={userSettings.theme} 
                   userId={userId} 
                 />
-              </TabsContent>
-              
-              <TabsContent value="css">
-                {activePage && activePage !== '' ? (
-                  <CustomCSSManager 
-                    userId={userId}
-                    pageSlug={activePage}
-                  />
-                ) : (
-                  <div className="p-8 border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-center">
-                    <p className="text-muted-foreground mb-4">Select a page from the sidebar to add custom CSS for that page.</p>
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
-          </TabsContent>
-          
-          <TabsContent value="pages" className="space-y-6">
-            <div className="flex space-x-4 mb-6">
-              <div className="w-64 shrink-0">
-                <Card className="p-4">
-                  <PageManager
-                    pages={siteCustomization.pages}
-                    userId={userId}
-                    activePage={activePage}
-                    onPageChange={setActivePage}
-                    onPagesUpdated={(updatedPages) => {
-                      setSiteCustomization({
-                        ...siteCustomization,
-                        pages: updatedPages
-                      });
-                    }}
-                  />
-                </Card>
               </div>
-              
-              <div className="flex-1">
+            </div>
+          )}
+          
+          {/* Pages section */}
+          {activeSection === 'pages' && (
+            <div className="bg-card border rounded-lg overflow-hidden">
+              <div className="p-4 border-b font-medium">
+                {activePage && siteCustomization.pages[activePage] 
+                  ? `Editing: ${siteCustomization.pages[activePage].title}` 
+                  : 'Page Editor'}
+              </div>
+              <div className="p-4">
                 {activePage && activePage !== '' && siteCustomization.pages[activePage] ? (
                   <PageBlocksEditor 
-                    key={activePage} /* Add key to force re-render when page changes */
+                    key={activePage}
                     page={siteCustomization.pages[activePage]} 
                     userId={userId} 
                   />
@@ -288,15 +280,21 @@ export default function SiteCustomizationClient({ username }: { username: string
                 )}
               </div>
             </div>
-          </TabsContent>
+          )}
           
-          <TabsContent value="css" className="space-y-6">
-            <CustomCSSEditor 
-              initialCSS={userSettings.customCSS || ''} 
-              userId={userId} 
-            />
-          </TabsContent>
-        </Tabs>
+          {/* Custom CSS section */}
+          {activeSection === 'custom-css' && (
+            <div className="bg-card border rounded-lg overflow-hidden">
+              <div className="p-4 border-b font-medium">Custom CSS</div>
+              <div className="p-4">
+                <CustomCSSEditor 
+                  initialCSS={userSettings.customCSS || ''} 
+                  userId={userId} 
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
