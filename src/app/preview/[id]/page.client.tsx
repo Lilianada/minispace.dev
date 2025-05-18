@@ -11,7 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Edit } from 'lucide-react';
 
-interface BlogPost {
+interface Post {
   id: string;
   title: string;
   content: string;
@@ -26,7 +26,7 @@ interface BlogPost {
 }
 
 export default function PreviewClient({ id }: { id: string }) {
-  const [post, setPost] = useState<BlogPost | null>(null);
+  const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
@@ -45,7 +45,7 @@ export default function PreviewClient({ id }: { id: string }) {
           return;
         }
 
-        const postData = postSnap.data() as Omit<BlogPost, 'id'>;
+        const postData = postSnap.data() as Omit<Post, 'id'>;
         
         // Check if the current user is the author of the post
         if (user?.uid !== postData.authorId) {
@@ -77,7 +77,7 @@ export default function PreviewClient({ id }: { id: string }) {
     const pathParts = pathname.split('/');
     const username = user?.displayName || pathParts[1];
     
-    router.push(`/${username}/dashboard/blog-posts`);
+    router.push(`/${username}/dashboard/posts`);
   };
 
   const handleEdit = () => {
@@ -86,7 +86,7 @@ export default function PreviewClient({ id }: { id: string }) {
     const pathParts = pathname.split('/');
     const username = user?.displayName || pathParts[1];
     
-    router.push(`/${username}/dashboard/blog-posts/${id}/edit`);
+    router.push(`/${username}/dashboard/posts/${id}/edit`);
   };
 
   if (loading) {

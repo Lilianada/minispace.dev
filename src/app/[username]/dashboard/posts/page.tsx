@@ -1,11 +1,11 @@
 import { Metadata } from 'next';
-import PostsPageClient from './page.client';
+import PostsPage from './page.client';
 
 export const metadata: Metadata = {
-  title: 'Manage Posts | Minispace',
+  title: 'Blog Posts | Minispace',
   description: 'Manage and organize all your blog posts',
 };
 
-export default function PostsPage() {
-  return <PostsPageClient />;
+export default function Page() {
+  return <PostsPage />;
 }

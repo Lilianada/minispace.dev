@@ -798,7 +798,7 @@ export async function generateStaticParams() {
   return paths;
 }
 
-export default async function BlogPost({ params }) {
+export default async function Post({ params }) {
   const { username, slug } = params;
   
   // Get the post data

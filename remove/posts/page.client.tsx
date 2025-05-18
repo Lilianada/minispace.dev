@@ -2,11 +2,11 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import PostsList from '@/components/post-page/PostsList';
+import PostsListSimple from '@/components/posts-page/PostsListSimple';
 import useAuth from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
-export default function PostsPage() {
+export default function PostsPageClient() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
@@ -16,7 +16,7 @@ export default function PostsPage() {
     if (!loading && !user) {
       toast({
         title: 'Authentication required',
-        description: 'Please log in to access your blog posts',
+        description: 'Please log in to access your dashboard',
         variant: 'destructive',
       });
       router.push('/login');
@@ -41,7 +41,7 @@ export default function PostsPage() {
 
   return (
     <div className="container py-6">
-      <PostsList />
+      <PostsListSimple />
     </div>
   );
 }
