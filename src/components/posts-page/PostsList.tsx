@@ -11,11 +11,14 @@ import PostsFilters from './PostFilters';
 import PostItem from './PostItem';
 import Pagination from '../ui/pagination';
 import { getDashboardPath } from '@/lib/route-utils';
+import useAuth from '@/hooks/useAuth';
+import PostsEmptyState from './PostsEmptyState';
 
 export default function PostsList() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const { user, loading: authLoading } = useAuth();
   
   // Get query parameters for filtering/sorting
   const page = Number(searchParams.get('page') || '1');
@@ -56,6 +59,19 @@ export default function PostsList() {
   
   // Separate effect for fetching posts
   useEffect(() => {
+    // Don't fetch if auth is still loading or user is not authenticated
+    if (authLoading) {
+      console.log('Auth is still loading, skipping post fetch');
+      return;
+    }
+    
+    if (!user) {
+      console.log('User is not authenticated, skipping post fetch');
+      setError('Authentication required. Please log in to view your posts.');
+      setIsLoading(false);
+      return;
+    }
+    
     // Check if filters actually changed
     const filtersChanged = 
       prevFilters.current.page !== page ||
@@ -97,6 +113,17 @@ export default function PostsList() {
           status,
           sort,
           search
+        }).catch(error => {
+          // Check if this is a Firestore index error
+          if (error.message && error.message.includes('index')) {
+            console.error('Firestore index error:', error);
+            setError('Database index required. Please check the console for details or contact support.');
+          } else if (error.message && error.message.includes('auth')) {
+            setError('Authentication required. Please log in again.');
+          } else {
+            setError(`Error loading posts: ${error.message || 'Unknown error'}`);
+          }
+          throw error; // Re-throw to be caught by the outer catch
         });
         
         // Clear the timeout since we got a response
@@ -137,15 +164,20 @@ export default function PostsList() {
       }
     }
     
+    console.log('Starting to fetch posts with filters:', { page, status, sort, search });
+    
+    // Actually call the fetchPosts function
     fetchPosts();
     
-    // Clean up timeout if component unmounts
+    // Cleanup function to clear timeout if component unmounts or effect re-runs
     return () => {
+      console.log('Cleaning up fetch posts effect');
       if (loadingTimeout) {
         clearTimeout(loadingTimeout);
+        loadingTimeout = null;
       }
     };
-  }, [page, status, sort, search, toast]);
+  }, [page, status, sort, search, toast, user, authLoading]);
   
   // Handle page change
   const handlePageChange = (newPage: number) => {
@@ -208,6 +240,24 @@ export default function PostsList() {
             </div>
           </Card>
         ))}
+        
+        {/* Add a debug button to force refresh */}
+        <div className="mt-8 text-center">
+          <p className="text-sm text-muted-foreground mb-4">Taking too long to load?</p>
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              setIsLoading(false);
+              toast({
+                title: "Loading cancelled",
+                description: "The loading process was taking too long and has been cancelled.",
+                variant: "default"
+              });
+            }}
+          >
+            Cancel Loading
+          </Button>
+        </div>
       </div>
     );
   }
@@ -215,22 +265,20 @@ export default function PostsList() {
   // Render error state
   if (error) {
     return (
-      <div className="text-center py-10 border border-dashed rounded-md p-6">
-        <h3 className="text-lg font-medium mb-2">Cannot load posts</h3>
-        <p className="text-muted-foreground mb-6">
-          {error.includes('credentials') || error.includes('authentication') 
-            ? 'There is a database connection issue. Please try again later or contact support.'
-            : error}
-        </p>
-        <div className="flex justify-center gap-4">
-          <Button onClick={() => router.refresh()}>
-            Refresh
-          </Button>
-          <Button variant="outline" onClick={() => router.push(getNewPostUrl())}>
-            Create New Post
-          </Button>
-        </div>
-      </div>
+      <PostsEmptyState
+        title="Cannot load posts"
+        message={error.includes('credentials') || error.includes('authentication') 
+          ? 'There is a database connection issue. Please try again later or contact support.'
+          : error}
+        showCreateButton={true}
+        showRefreshButton={true}
+        onRefresh={() => {
+          setIsLoading(true);
+          setError(null);
+          router.refresh();
+        }}
+        error={true}
+      />
     );
   }
   
@@ -253,21 +301,25 @@ export default function PostsList() {
       />
       
       {!posts || posts.length === 0 ? (
-        <div className="text-center py-10 border border-dashed rounded-md">
-          <h3 className="text-lg font-medium mb-2">No posts found</h3>
-          <p className="text-muted-foreground mb-6">
-            {search 
-              ? `No posts match the search "${search}"`
-              : status !== 'all' 
-                ? `You don't have any ${status} posts yet`
-                : error
-                  ? "Unable to load posts due to a technical issue"
-                  : "You haven't created any posts yet"}
-          </p>
-          <Button onClick={() => router.push(getNewPostUrl())}>
-            Create Your First Post
-          </Button>
-        </div>
+        <PostsEmptyState
+          title="No posts found"
+          message={search 
+            ? `No posts match the search "${search}"`
+            : status !== 'all' 
+              ? `You don't have any ${status} posts yet`
+              : error
+                ? "Unable to load posts due to a technical issue"
+                : "You haven't created any posts yet"}
+          showCreateButton={true}
+          showRefreshButton={search !== '' || status !== 'all'}
+          onRefresh={() => {
+            // If we have a search or status filter, reset it
+            const params = new URLSearchParams(searchParams.toString());
+            if (search) params.delete('search');
+            if (status !== 'all') params.set('status', 'all');
+            router.push(getPostsUrl(params));
+          }}
+        />
       ) : (
         <>
           <div className="space-y-4">
