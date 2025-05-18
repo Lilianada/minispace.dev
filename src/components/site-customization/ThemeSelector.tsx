@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import useAuth from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,34 +10,28 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { themeCategories } from '@/themes';
+import Image from 'next/image';
 
 interface Theme {
   id: string;
   name: string;
   description: string;
-  preview: string;
+  category: string;
+  preview?: React.ComponentType<any>;
 }
 
-const themes: Theme[] = [
-  {
-    id: 'minimal',
-    name: 'Minimal',
-    description: 'Clean and simple design with focus on content',
-    preview: '/themes/minimal-preview.png',
-  },
-  {
-    id: 'editorial',
-    name: 'Editorial',
-    description: 'Magazine-style layout with bold typography',
-    preview: '/themes/editorial-preview.png',
-  },
-  {
-    id: 'portfolio',
-    name: 'Portfolio',
-    description: 'Showcase your work with this visual theme',
-    preview: '/themes/portfolio-preview.png',
-  },
-];
+// Convert our theme structure to the format expected by the ThemeSelector
+const allThemes: Theme[] = themeCategories.flatMap(category => 
+  category.themes.map(theme => ({
+    id: `${category.id}/${theme.name.toLowerCase()}`,
+    name: theme.name,
+    description: theme.config.description,
+    category: category.id,
+    preview: theme.preview,
+  }))
+);
 
 interface ThemeSelectorProps {
   currentTheme: string;
@@ -45,7 +39,8 @@ interface ThemeSelectorProps {
 }
 
 export default function ThemeSelector({ currentTheme, userId }: ThemeSelectorProps) {
-  const [selectedTheme, setSelectedTheme] = useState(currentTheme || 'minimal');
+  const [selectedTheme, setSelectedTheme] = useState(currentTheme || 'personal/rubik');
+  const [selectedCategory, setSelectedCategory] = useState('personal');
   const [isUpdating, setIsUpdating] = useState(false);
   const { user } = useAuth();
   const router = useRouter();
@@ -65,9 +60,38 @@ export default function ThemeSelector({ currentTheme, userId }: ThemeSelectorPro
       setIsUpdating(true);
       const userSettingsRef = doc(db, 'users', userId, 'userSettings', 'theme');
       
-      await updateDoc(userSettingsRef, {
-        theme: selectedTheme,
-      });
+      // Parse the selected theme ID to get category and theme name
+      const [category, themeName] = selectedTheme.split('/');
+      
+      // Find the actual theme object
+      const selectedThemeObj = allThemes.find(
+        theme => theme.category === category && theme.name.toLowerCase() === themeName
+      );
+      
+      if (!selectedThemeObj) {
+        throw new Error('Selected theme not found');
+      }
+      
+      // Check if the document exists
+      const docSnap = await getDoc(userSettingsRef);
+      
+      const themeData = {
+        themeId: selectedTheme,
+        themeName: selectedThemeObj.name,
+        themeCategory: category,
+        updatedAt: new Date(),
+      };
+      
+      // If the document exists, update it; otherwise, create it
+      if (docSnap.exists()) {
+        await updateDoc(userSettingsRef, themeData);
+      } else {
+        // Add createdAt field for new documents
+        await setDoc(userSettingsRef, {
+          ...themeData,
+          createdAt: new Date(),
+        });
+      }
 
       toast({
         title: 'Theme updated',
@@ -88,6 +112,12 @@ export default function ThemeSelector({ currentTheme, userId }: ThemeSelectorPro
     }
   };
 
+  // Get unique categories
+  const categories = [...new Set(allThemes.map(theme => theme.category))];
+  
+  // Filter themes by selected category
+  const filteredThemes = allThemes.filter(theme => theme.category === selectedCategory);
+
   return (
     <div className="space-y-6">
       <div>
@@ -97,49 +127,85 @@ export default function ThemeSelector({ currentTheme, userId }: ThemeSelectorPro
         </p>
       </div>
 
-      <RadioGroup
-        value={selectedTheme}
-        onValueChange={setSelectedTheme}
-        className="grid grid-cols-1 md:grid-cols-3 gap-4"
-      >
-        {themes.map((theme) => (
-          <div key={theme.id} className="relative">
-            <RadioGroupItem
-              value={theme.id}
-              id={theme.id}
-              className="sr-only"
-            />
-            <Label
-              htmlFor={theme.id}
-              className="cursor-pointer"
+      <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
+        <TabsList className="mb-4">
+          {categories.map(category => (
+            <TabsTrigger key={category} value={category}>
+              {category.charAt(0).toUpperCase() + category.slice(1)}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        
+        {categories.map(category => (
+          <TabsContent key={category} value={category} className="m-0">
+            <RadioGroup
+              value={selectedTheme}
+              onValueChange={setSelectedTheme}
+              className="grid grid-cols-1 md:grid-cols-3 gap-4"
             >
-              <Card className={`overflow-hidden transition-all ${
-                selectedTheme === theme.id 
-                  ? 'ring-2 ring-primary' 
-                  : 'hover:border-primary/50'
-              }`}>
-                <CardHeader className="p-4">
-                  <CardTitle className='flex justify-between'>
-                    {theme.name}
-                    {selectedTheme === theme.id && (
-                    <div className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded-md">Selected</div>
-                  )}
-                    </CardTitle>
-                  <CardDescription>{theme.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="aspect-video bg-muted relative overflow-hidden">
-                    {/* Replace with actual theme preview images */}
-                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                      Theme Preview
-                    </div>
+              {filteredThemes.map((theme) => {
+                const ThemePreview = theme.preview;
+                
+                return (
+                  <div key={theme.id} className="relative">
+                    <RadioGroupItem
+                      value={theme.id}
+                      id={theme.id}
+                      className="sr-only"
+                    />
+                    <Label
+                      htmlFor={theme.id}
+                      className="cursor-pointer"
+                    >
+                      <Card className={`overflow-hidden transition-all ${
+                        selectedTheme === theme.id 
+                          ? 'ring-2 ring-primary' 
+                          : 'hover:border-primary/50'
+                      }`}>
+                        <CardHeader className="p-4">
+                          <CardTitle className='flex justify-between'>
+                            {theme.name}
+                            {selectedTheme === theme.id && (
+                              <div className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded-md">Selected</div>
+                            )}
+                          </CardTitle>
+                          <CardDescription>{theme.description}</CardDescription>
+                          <div className="mt-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                router.push(`/${localStorage.getItem('username')}/dashboard/themes/preview/${encodeURIComponent(theme.id)}`);
+                              }}
+                            >
+                              Preview Theme
+                            </Button>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                          <div className="aspect-video bg-muted relative overflow-hidden">
+                            {ThemePreview ? (
+                              <div className="h-full w-full scale-[0.6] origin-top-left">
+                                <ThemePreview />
+                              </div>
+                            ) : (
+                              <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                                Theme Preview
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Label>
                   </div>
-                </CardContent>
-              </Card>
-            </Label>
-          </div>
+                );
+              })}
+            </RadioGroup>
+          </TabsContent>
         ))}
-      </RadioGroup>
+      </Tabs>
 
       <Button 
         onClick={handleThemeChange} 

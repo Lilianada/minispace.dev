@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import useAuth from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -15,6 +14,7 @@ import ThemeSelector from '@/components/site-customization/ThemeSelector';
 import PageManager from '@/components/site-customization/PageManager';
 import CustomCSSManager from '@/components/site-customization/CustomCSSManager';
 import CustomCSSEditor from '@/components/site-customization/CustomCSSEditor';
+import { CustomizationHeader } from '@/components/site-customization/CustomizationHeader';
 
 interface UserSettings {
   theme: string;
@@ -42,7 +42,7 @@ export default function SiteCustomizationClient({ username }: { username: string
   const [activeTab, setActiveTab] = useState('theme');
   const [activePage, setActivePage] = useState<string | null>(null);
   
-  const { user } = useAuth();
+  const { user, userData } = useAuth();
   const router = useRouter();
 
   // Fetch user data and settings
@@ -176,13 +176,7 @@ export default function SiteCustomizationClient({ username }: { username: string
   return (
     <div className="container py-8">
       <div className="space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold mb-2">Site Customization</h1>
-          <p className="text-muted-foreground">
-            Customize your personal site on Minispace. Changes will be visible at <strong>{username}.minispace.dev</strong>
-          </p>
-        </div>
-
+        <CustomizationHeader user={user} userData={userData} />
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6">
             <TabsTrigger value="theme">Theme</TabsTrigger>

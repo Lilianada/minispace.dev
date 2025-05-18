@@ -32,6 +32,7 @@ const googleProvider = new GoogleAuthProvider();
 
 // User type
 export interface UserData {
+  username: string; // Added username property to align with auth-context.tsx
   uid: string;
   email: string | null;
   displayName: string | null;
@@ -128,10 +129,12 @@ export const resetPassword = async (email: string) => {
 export const createUserDocument = async (user: User) => {
   if (!user.uid) return;
   
-  const userRef = doc(db, 'users', user.uid);
+  const userRef = doc(db, 'Users', user.uid); // Changed from 'users' to 'Users' to match the collection name used in auth-context.tsx
   const userData = {
     uid: user.uid,
     email: user.email,
+    // Generate a username from email or display name if not available
+    username: user.email?.split('@')[0] || `user_${user.uid.substring(0, 8)}`,
     displayName: user.displayName || user.email?.split('@')[0],
     photoURL: user.photoURL,
     createdAt: serverTimestamp(),
@@ -167,11 +170,13 @@ export const updateUserLastLogin = async (uid: string) => {
  */
 export const getUserData = async (uid: string): Promise<UserData | null> => {
   try {
-    const userRef = doc(db, 'users', uid);
+    const userRef = doc(db, 'Users', uid); // Changed from 'users' to 'Users' to match the collection name used in auth-context.tsx
     const userDoc = await getDoc(userRef);
     
     if (userDoc.exists()) {
-      return userDoc.data() as UserData;
+      const data = userDoc.data();
+      // Ensure the data conforms to the UserData interface
+      return data as UserData;
     }
     
     return null;

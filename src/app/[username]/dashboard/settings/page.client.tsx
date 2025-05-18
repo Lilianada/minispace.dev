@@ -13,6 +13,7 @@ import { PrivacySettings } from '@/components/settings/PrivacySettings';
 import { NotificationSettings } from '@/components/settings/NotificationSettings';
 import { ApiSettings } from '@/components/settings/ApiSettings';
 import { DangerZone } from '@/components/settings/DangerZone';
+import { SettingsHeader } from '@/components/settings/SettingsHeader';
 
 export default function SettingsPage() {
   const { user, userData, logout } = useAuth();
@@ -92,7 +93,7 @@ export default function SettingsPage() {
   
   return (
     <div className="container py-10">
-      <h1 className="text-3xl font-bold mb-6">Settings</h1>
+      <SettingsHeader user={user} userData={userData} />
       
       <Tabs defaultValue="account" className="w-full">
         <TabsList className="mb-4">
