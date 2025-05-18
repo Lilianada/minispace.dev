@@ -9,8 +9,11 @@ import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { useToast } from '@/hooks/use-toast';
 
+import { User } from 'firebase/auth';
+import { UserData } from '@/lib/auth-context';
+
 interface PrivacySettingsProps {
-  user: any;
+  user: User | null;
   publicProfile: boolean;
   setPublicProfile: (value: boolean) => void;
   showEmail: boolean;

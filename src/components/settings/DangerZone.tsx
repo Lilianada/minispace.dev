@@ -9,8 +9,11 @@ import { db } from '@/lib/firebase/config';
 import { deleteUser } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 
+import { User } from 'firebase/auth';
+import { UserData } from '@/lib/auth-context';
+
 interface DangerZoneProps {
-  user: any;
+  user: User | null;
   logout: () => Promise<void>;
 }
 

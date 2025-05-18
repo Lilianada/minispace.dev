@@ -80,9 +80,9 @@ export default function Navbar() {
             </button>
 
             <div className="hidden md:ml-4 md:flex md:items-center">
-              {/* <Link href="/dashboard/new-post" className="text-sm font-medium px-3 py-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors">
-                New Post
-              </Link> */}
+              <Link href="/docs" className="text-sm font-medium px-3 py-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors">
+                Documentation
+              </Link>
               
               {/* Notifications */}
               {/* <button className="ml-2 p-2 rounded-full text-muted-foreground hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
@@ -151,11 +151,11 @@ export default function Navbar() {
         <div className="md:hidden border-t border-border">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <Link 
-              href={`${dashboardUrl}/new-post`}
+              href="/docs"
               className="block px-3 py-2 rounded-md text-base font-medium text-foreground hover:bg-accent hover:text-accent-foreground"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              New Post
+              Documentation
             </Link>
           </div>
           <div className="pt-4 pb-3 border-t border-border">

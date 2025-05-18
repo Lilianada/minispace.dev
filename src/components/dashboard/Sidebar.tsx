@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '../ui/button';
+import { StorageUsage, StorageUpgradePrompt } from '../ui/storage-usage';
+import { ExternalLink } from 'lucide-react';
 
 interface NavigationItem {
   name: string;
@@ -76,15 +78,6 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       )
     },
     {
-      name: 'Comments',
-      href: getNavLink('/dashboard/comments'),
-      icon: (className) => (
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
-        </svg>
-      )
-    },
-    {
       name: 'Site Customization',
       href: getNavLink('/dashboard/site-customization'),
       icon: (className) => (
@@ -135,7 +128,7 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 
       {/* Navigation items */}
       <nav className="mt-5 px-2">
-        <div className="space-y-4">
+        <div className="space-y-2">
           {navigation.map((item) => {
             // Check if path after username matches the expected dashboard route pattern
             const baseHref = item.href.replace(`/${username}`, '');
@@ -165,26 +158,26 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 
 
       {/* Storage section */}
-        {!isCollapsed && (
-      <div className="absolute bottom-0 w-full p-4 grid gap-4">
-      {/* Banner to upgrade to pro */}
-      <div className="w-full">
-        <div className="rounded-md bg-primary/10 p-3 text-xs text-primary">
-          <p className="mb-1">Upgrade to Pro</p>
-          <p className="text-xs text-muted-foreground">Get access to all features and more storage</p>
-          <Button className="mt-2">Upgrade</Button>
-        </div>
-      </div>
-
-          <div className="rounded-md bg-muted/50 p-3 text-xs text-muted-foreground">
-            <p className="mb-1">Storage used</p>
-            <div className="w-full bg-muted rounded-full h-1.5">
-              <div className="bg-primary h-1.5 rounded-full w-1/4"></div>
-            </div>
-            <p className="mt-1">25% of 100MB used</p>
-          </div>
-      </div>
+        <div className="absolute bottom-0 w-full p-4 grid gap-4">
+      {!isCollapsed && (
+        <>
+          {/* Banner to upgrade to pro */}
+          <StorageUpgradePrompt />
+          
+          {/* Storage usage component */}
+          <StorageUsage compact />
+          </>
         )}
+          {/* Documentation link */}
+          <Link 
+            href="/docs" 
+            target="_blank"
+            className="text-sm text-muted-foreground hover:text-primary flex items-center  py-2"
+          >
+           {isCollapsed && <ExternalLink className={`h-4 w-4 mr-0 flex-shrink-0`} />}
+           {!isCollapsed && <span>Documentation</span>}
+          </Link>
+        </div>
     </div>
   );
 }

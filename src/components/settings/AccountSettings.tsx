@@ -12,9 +12,12 @@ import { db } from '@/lib/firebase/config';
 import { updatePassword, updateEmail, sendEmailVerification } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 
+import { User } from 'firebase/auth';
+import { UserData } from '@/lib/auth-context';
+
 interface AccountSettingsProps {
-  user: any;
-  userData: any;
+  user: User | null;
+  userData: UserData | null;
   emailNotifications: boolean;
   setEmailNotifications: (value: boolean) => void;
   marketingEmails: boolean;

@@ -11,18 +11,23 @@ import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { useToast } from '@/hooks/use-toast';
 
+import { User } from 'firebase/auth';
+import { UserData } from '@/lib/auth-context';
+
+interface WebhookEvents {
+  postPublished: boolean;
+  subscriberAdded: boolean;
+  formSubmission: boolean;
+}
+
 interface ApiSettingsProps {
-  user: any;
+  user: User | null;
   apiKey: string;
   setApiKey: (value: string) => void;
   webhookUrl: string;
   setWebhookUrl: (value: string) => void;
-  webhookEvents: {
-    postPublished: boolean;
-    subscriberAdded: boolean;
-    formSubmission: boolean;
-  };
-  setWebhookEvents: (value: any) => void;
+  webhookEvents: WebhookEvents;
+  setWebhookEvents: (value: WebhookEvents) => void;
 }
 
 export function ApiSettings({
@@ -213,10 +218,10 @@ export function ApiSettings({
                 id="post-published" 
                 checked={webhookEvents.postPublished}
                 onCheckedChange={(checked: boolean | 'indeterminate') => 
-                  setWebhookEvents(prev => ({
-                    ...prev,
+                  setWebhookEvents({
+                    ...webhookEvents,
                     postPublished: checked === true
-                  }))
+                  })
                 }
                 disabled={isLoading}
               />
@@ -230,10 +235,10 @@ export function ApiSettings({
                 id="subscriber-added" 
                 checked={webhookEvents.subscriberAdded}
                 onCheckedChange={(checked: boolean | 'indeterminate') => 
-                  setWebhookEvents(prev => ({
-                    ...prev,
+                  setWebhookEvents({
+                    ...webhookEvents,
                     subscriberAdded: checked === true
-                  }))
+                  })
                 }
                 disabled={isLoading}
               />
@@ -247,10 +252,10 @@ export function ApiSettings({
                 id="form-submission" 
                 checked={webhookEvents.formSubmission}
                 onCheckedChange={(checked: boolean | 'indeterminate') => 
-                  setWebhookEvents(prev => ({
-                    ...prev,
+                  setWebhookEvents({
+                    ...webhookEvents,
                     formSubmission: checked === true
-                  }))
+                  })
                 }
                 disabled={isLoading}
               />
