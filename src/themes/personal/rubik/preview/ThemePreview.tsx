@@ -152,11 +152,7 @@ Good writing is rewriting. Edit your posts to remove fluff, clarify ideas, and f
   return (
     <div className="w-full">
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <div className="p-4 border-b border-gray-200 bg-gray-50">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Rubik Theme Preview</h3>
-        </div>
-        
-        <div className="h-[600px] overflow-y-auto">
+        <div className="overflow-y-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="px-4 pt-4 border-b">
               <TabsList>
@@ -187,9 +183,6 @@ Good writing is rewriting. Edit your posts to remove fluff, clarify ideas, and f
           </Tabs>
         </div>
         
-        <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-end">
-          <Button variant="default">Select This Theme</Button>
-        </div>
       </div>
     </div>
   );

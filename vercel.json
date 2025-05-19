@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "(?<subdomain>.*)\\.minispace\\.dev"
+        }
+      ],
+      "destination": "/$subdomain/:path*"
+    }
+  ]
+}

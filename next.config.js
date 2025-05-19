@@ -11,7 +11,23 @@ const nextConfig = {
   images: {
     domains: ['firebasestorage.googleapis.com', 'lh3.googleusercontent.com'],
   },
-  // No experimental options for now
+  // Enable experimental features for subdomain support
+  experimental: {
+    // Enable app directory features
+    appDir: true,
+  },
+  // Configure hostname rewrites for development
+  async rewrites() {
+    return {
+      beforeFiles: [
+        // Rewrite API requests to avoid CORS issues
+        {
+          source: '/api/:path*',
+          destination: '/api/:path*',
+        },
+      ],
+    };
+  },
 };
 
 module.exports = nextConfig;
