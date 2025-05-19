@@ -12,6 +12,7 @@ import HostingOptionsSection from '@/components/docs/HostingOptionsSection';
 import GitHubPagesSection from '@/components/docs/GitHubPagesSection';
 import FAQSection from '@/components/docs/FAQSection';
 import DocsFooter from '@/components/docs/DocsFooter';
+import Footer from '../test/components/Footer';
 
 export default function DocsPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -53,7 +54,7 @@ export default function DocsPage() {
       </div>
       
       {/* Footer */}
-      <DocsFooter />
+      <Footer/>
     </div>
   );
 }

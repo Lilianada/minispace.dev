@@ -3,8 +3,6 @@
 import { User } from 'firebase/auth';
 import { UserData } from '@/lib/auth-context';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Settings, Globe, Palette } from 'lucide-react';
 import Link from 'next/link';
 
 interface SettingsHeaderProps {
@@ -19,28 +17,14 @@ export function SettingsHeader({ user, userData }: SettingsHeaderProps) {
   
   return (
     <Card className="mb-6">
-      <CardContent className="pt-6">
-        <div className="flex items-center gap-4 mb-6">
+      <CardContent className="p-6">
+        <div className="flex items-center gap-4">
           <div>
-            <p className="text-muted-foreground">Manage your account and site preferences</p>
+            <h3 className="text-lg font-semibold mb-2">Hi {username}!</h3>
+            <p className="text-muted-foreground">Manage your account and site preferences. If you encounter any issues while using the settings page or the app in general, be sure to leave a message for us on the <Link className="" href="/issues">Issues Page</Link> and we'll get to it in time.</p>
           </div>
         </div>
         
-        <div className="flex flex-wrap gap-3">
-          <Button variant="outline" size="sm" asChild>
-            <Link href={`/${username}/dashboard/settings/domain`}>
-              <Globe className="h-4 w-4 mr-2" />
-              Domain Settings
-            </Link>
-          </Button>
-          
-          <Button variant="outline" size="sm" asChild>
-            <Link href={`/${username}/dashboard/site-customization/themes`}>
-              <Palette className="h-4 w-4 mr-2" />
-              Theme Settings
-            </Link>
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );

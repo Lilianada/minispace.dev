@@ -1,3 +1,24 @@
+# Founder’s Note
+
+The internet gave us a way to find people who live hundreds, even thousands of miles away — all with just a few clicks.
+It gave everyone the chance to create a presence, a space, an identity. To design and refine it. To make it their own. To give it personality. To add little bits that make it feel like home.
+
+Stumbling into these spaces, exploring them, breaking them down, reading what the writer has to say — that’s where I get my fair share of daily dopamine.
+
+So... why should everyone have one?
+
+The real question is, *why not?*
+
+You can do whatever you want with it. Add whatever you like — without constraints, without restrictions.
+Build something you may never get to have in real life. Or just make something simple — something that’s good enough to tell the tiny bits that make you *you*. Share stories, memories, scattered thoughts, and little moments.
+
+If you’ve ever wanted to do that, but didn’t know where to start…
+I’m building **Minispace** for you.
+
+With Minispace, you can carve out your own little corner of the web.
+
+---
+
 That’s a beautiful piece of sentiment — and it can serve as the **emotional foundation** for the design direction of Minispace.
 
 Let’s distill all that you’ve said and shape a **clear, cohesive design direction** that reflects the *soul* of the product, and finally gives Minispace its own **personality**:

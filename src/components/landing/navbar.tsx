@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 interface NavbarProps {
-  activePage?: 'home' | 'discover' | 'pricing' | 'signin' | 'signup';
+  activePage?: 'home' | 'about' | 'discover' | 'pricing' | 'signin' | 'signup';
 }
 
 export default function Navbar({ activePage = 'home' }: NavbarProps) {
@@ -41,6 +41,12 @@ export default function Navbar({ activePage = 'home' }: NavbarProps) {
         {/* Desktop navigation */}
         <div className="hidden space-x-6 md:flex items-center">
           <Link 
+            href="/about" 
+            className={`text-sm font-medium transition-colors ${activePage === 'about' ? 'text-primary italic font-bold' : 'hover:text-accent'}`}
+          >
+            About
+          </Link>
+          <Link 
             href="/discover" 
             className={`text-sm font-medium transition-colors ${activePage === 'discover' ? 'text-primary italic font-bold' : 'hover:text-accent'}`}
           >
@@ -70,6 +76,13 @@ export default function Navbar({ activePage = 'home' }: NavbarProps) {
         {isOpen && (
           <div className="absolute top-14 left-0 right-0 bg-background border-b border-border z-50 md:hidden">
             <div className="flex flex-col space-y-4 p-4">
+              <Link 
+                href="/about" 
+                className={`text-sm font-medium transition-colors ${activePage === 'about' ? 'text-primary italic font-bold' : 'hover:text-accent'}`}
+                onClick={() => setIsOpen(false)}
+              >
+                About
+              </Link>
               <Link 
                 href="/discover" 
                 className={`text-sm font-medium transition-colors ${activePage === 'discover' ? 'text-primary italic font-bold' : 'hover:text-accent'}`}

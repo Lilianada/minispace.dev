@@ -129,7 +129,7 @@ export default function AppearanceSettingsPage({ params }: { params: { username:
     } else {
       setIsLoading(false); // Set loading to false if no user
     }
-  }, [user, toast]);
+  }, [user]);
 
   // Save appearance settings
   const saveAppearanceSettings = async () => {

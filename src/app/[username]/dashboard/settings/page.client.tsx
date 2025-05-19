@@ -127,7 +127,7 @@ export default function SettingsPage() {
   if (authLoading || isLoadingSettings) {
     return (
       <div className="container py-10">
-        <h1 className="text-3xl font-bold mb-6">Settings</h1>
+        <h1 className="text-3xl font-semibold mb-6">Settings</h1>
         <Card>
           <CardHeader>
             <Skeleton className="h-8 w-1/3" />
@@ -168,17 +168,8 @@ export default function SettingsPage() {
     <div className="container py-8">
       <div className="space-y-8">
         <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-semibold">Settings</h2>
-          <Link 
-            href="/docs" 
-            target="_blank" 
-            className="text-sm text-muted-foreground hover:text-primary flex items-center"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
-            </svg>
-            Documentation
-          </Link>
+          <h2 className="text-3xl font-semibold">Settings</h2>
+          
         </div>
         
         <SettingsHeader user={user} userData={validUserData} />
@@ -194,7 +185,7 @@ export default function SettingsPage() {
                     href={item.href}
                     className={`px-3 py-2 rounded-md text-sm font-medium ${item.current
                       ? 'bg-primary/10 text-primary'
-                      : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                      : 'text-muted-foreground hover:bg-accent hover:text-background'
                     }`}
                   >
                     {item.name}
