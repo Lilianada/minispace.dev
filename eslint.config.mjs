@@ -1,18 +1,17 @@
-import eslint from '@eslint/js';
-import tseslint from 'typescript-eslint';
-import reactRecommended from 'eslint-plugin-react/configs/recommended.js';
-import reactHooks from 'eslint-plugin-react-hooks';
-import nextPlugin from '@next/eslint-plugin-next';
+import { FlatCompat } from '@eslint/eslintrc';
+import js from '@eslint/js';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-export default tseslint.config(
-  eslint.configs.recommended,
-  ...tseslint.configs.recommended,
-  reactRecommended,
-  reactHooks.configs.recommended,
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+});
+
+export default [
+  js.configs.recommended,
+  ...compat.extends('next/core-web-vitals'),
   {
-    plugins: {
-      '@next/next': nextPlugin,
-    },
     rules: {
       // Disable rules that are too strict for this project
       'no-unused-vars': 'off',
@@ -39,4 +38,4 @@ export default tseslint.config(
       },
     },
   }
-);
+];
