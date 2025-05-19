@@ -6,14 +6,13 @@ import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import useAuth from '@/hooks/useAuth';
 import { UserData } from '@/lib/auth-context';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { themeCategories } from '@/themes';
-import Image from 'next/image';
 
 interface Theme {
   id: string;
@@ -182,9 +181,8 @@ export default function ThemeSelector({ currentTheme, userId, userData: propUser
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                // Get username from userData or localStorage as fallback
-                                const username = userData?.username || localStorage.getItem('username');
-                                router.push(`/${username}/dashboard/site-customization/themes/preview/${encodeURIComponent(theme.id)}`);
+                                // Open in a new tab instead of navigating in the current window
+                                window.open(`/theme-preview/${encodeURIComponent(theme.id)}`, '_blank');
                               }}
                             >
                               Preview Theme

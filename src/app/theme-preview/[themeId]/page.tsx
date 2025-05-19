@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { allThemes } from '@/themes';
+import ThemePreviewClient from './page.client';
 
 interface ThemePreviewPageProps {
   params: {
@@ -10,40 +11,41 @@ interface ThemePreviewPageProps {
 export default async function ThemePreviewPage({ params }: ThemePreviewPageProps) {
   // Await the params object to fix the Next.js warning
   const paramsObj = await Promise.resolve(params);
-  const themeId = paramsObj.themeId;
+  let themeId = decodeURIComponent(paramsObj.themeId);
   
   if (!themeId) {
     return notFound();
   }
   
-  // Parse the theme ID to get category and theme name
-  const [category, themeName] = themeId.split('/');
+  let category, themeName;
   
-  // Find the theme
-  const theme = allThemes.find(
-    t => t.category === category && t.name.toLowerCase() === themeName
+  // Handle both URL formats: 'category/themeName' and just 'themeId'
+  if (themeId.includes('/')) {
+    // Format: 'category/themeName'
+    [category, themeName] = themeId.split('/');
+  } else {
+    // Try to find the theme directly by ID
+    const theme = allThemes.find(t => t.id === themeId);
+    if (theme) {
+      category = theme.category;
+      themeName = theme.name;
+    }
+  }
+  
+  if (!category || !themeName) {
+    return notFound();
+  }
+  
+  // Find the theme by category and name (case insensitive)
+  const theme = allThemes.find(theme => 
+    theme.category.toLowerCase() === category.toLowerCase() && 
+    theme.name.toLowerCase() === themeName.toLowerCase()
   );
   
   if (!theme || !theme.preview) {
     return notFound();
   }
   
-  const ThemePreviewComponent = theme.preview;
-  
-  return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b py-4 px-6 bg-background sticky top-0 z-10 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">
-          {theme.name} Theme Preview
-        </h1>
-        <div className="text-sm text-muted-foreground">
-          Category: {theme.category}
-        </div>
-      </header>
-      
-      <main className="container mx-auto p-4">
-        <ThemePreviewComponent />
-      </main>
-    </div>
-  );
+  // Pass the theme to the client component
+  return <ThemePreviewClient theme={theme} />;
 }

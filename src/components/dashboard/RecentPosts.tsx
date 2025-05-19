@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Loader } from '@/components/ui/loader';
 import { formatDate } from '@/lib/utils';
 import { getDashboardPath } from '@/lib/route-utils';
+import { db } from '@/lib/firebase/config';
+import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
+import useAuth from '@/hooks/useAuth';
 
 interface Post {
   id: string;
@@ -21,58 +24,51 @@ export default function RecentPosts() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { user } = useAuth();
+
   useEffect(() => {
     async function fetchPosts() {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
-        // For now, use mock data - in production, this would be a real API call
-        // const response = await fetch('/api/posts/recent');
-        // const data = await response.json();
+        setIsLoading(true);
         
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 600));
+        // Get posts from Firestore
+        const postsRef = collection(db, `Users/${user.uid}/posts`);
+        const postsQuery = query(
+          postsRef,
+          orderBy('createdAt', 'desc'),
+          limit(5) // Limit to 5 most recent posts
+        );
         
-        // Mock data
-        const mockData: Post[] = [
-          {
-            id: '1',
-            title: 'Getting Started with Minispace',
-            status: 'published',
-            createdAt: '2025-05-10T12:00:00Z',
-            views: 245,
-          },
-          {
-            id: '2',
-            title: 'Best Practices for Blog SEO',
-            status: 'published',
-            createdAt: '2025-05-08T15:30:00Z',
-            views: 187,
-          },
-          {
-            id: '3',
-            title: 'How to Grow Your Blog Audience',
-            status: 'draft',
-            createdAt: '2025-05-05T09:15:00Z',
-            views: 0,
-          },
-          {
-            id: '4',
-            title: 'Content Marketing Strategies',
-            status: 'draft',
-            createdAt: '2025-05-03T14:20:00Z',
-            views: 0,
-          },
-        ];
+        const querySnapshot = await getDocs(postsQuery);
         
-        setPosts(mockData);
+        const fetchedPosts: Post[] = [];
+        querySnapshot.forEach((doc) => {
+          const postData = doc.data();
+          fetchedPosts.push({
+            id: doc.id,
+            title: postData.title || 'Untitled Post',
+            status: postData.status || 'draft',
+            createdAt: postData.createdAt?.toDate?.() || new Date(),
+            views: postData.views || 0,
+          });
+        });
+        
+        setPosts(fetchedPosts);
         setIsLoading(false);
       } catch (err) {
+        console.error('Error fetching posts:', err);
         setError((err as Error).message || 'Failed to fetch posts');
         setIsLoading(false);
       }
     }
     
     fetchPosts();
-  }, []);
+  }, [user]);
 
   return (
     <Card>

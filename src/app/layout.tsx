@@ -5,6 +5,7 @@ import { ToastProvider } from "@/components/ui/toast";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/lib/auth-context";
+import { ProgressBar } from "@/components/ui/progress-bar";
 
 export const metadata: Metadata = {
   title: "Minispace - Minimalist Blogging",
@@ -46,6 +47,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
+        <ProgressBar />
         <AuthProvider>
         <ToastProvider>
             <TooltipProvider>

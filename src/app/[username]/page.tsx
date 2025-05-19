@@ -8,6 +8,7 @@ import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firesto
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import LoadingDots from '@/components/LoadingDots';
+import UserSiteLayout from '@/components/user-site/UserSiteLayout';
 
 interface UserProfile {
   username: string;
@@ -76,7 +77,8 @@ export default function UserProfilePage({ params }: { params: { username: string
     );
   }
 
-  return (
+  // Create a home page component for the user's site
+  const UserHomePage = () => (
     <div className="container mx-auto py-8 px-4">
       <Card className="max-w-3xl mx-auto">
         <CardHeader className="flex flex-col sm:flex-row items-center gap-4">
@@ -116,5 +118,12 @@ export default function UserProfilePage({ params }: { params: { username: string
         </CardFooter>
       </Card>
     </div>
+  );
+  
+  // Wrap the user home page with the theme layout
+  return (
+    <UserSiteLayout username={username}>
+      <UserHomePage />
+    </UserSiteLayout>
   );
 }
