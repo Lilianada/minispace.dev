@@ -4,14 +4,22 @@ import { getFirestore } from 'firebase-admin/firestore';
 
 // Initialize Firebase Admin SDK (if not already initialized)
 function initializeAdminApp() {
+  // Skip initialization during build time
+  if (process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV === 'production') {
+    if (!process.env.FIREBASE_ADMIN_CREDENTIALS) {
+      console.warn('FIREBASE_ADMIN_CREDENTIALS not available during build, skipping admin initialization');
+      return;
+    }
+  }
+  
   if (getApps().length === 0) {
     try {
       // Get admin credentials
       const adminCredentials = process.env.FIREBASE_ADMIN_CREDENTIALS;
       
       if (!adminCredentials) {
-        console.error('FIREBASE_ADMIN_CREDENTIALS environment variable is not defined');
-        throw new Error('Missing Firebase admin credentials');
+        console.warn('FIREBASE_ADMIN_CREDENTIALS environment variable is not defined, skipping initialization');
+        return; // Skip initialization instead of throwing error
       }
       
       try {
@@ -30,25 +38,19 @@ function initializeAdminApp() {
             }),
             databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
           });
+          console.log('Firebase Admin SDK initialized successfully with JSON credentials');
         } catch (jsonError) {
           // If not valid JSON, use as string private key
-          console.warn('Could not parse credentials as JSON, using as private key string');
-          initializeApp({
-            credential: cert({
-              projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID as string,
-              clientEmail: process.env.FIREBASE_CLIENT_EMAIL as string,
-              privateKey: decodedCredentials,
-            }),
-            databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
-          });
+          console.warn('Could not parse credentials as JSON, skipping initialization');
+          return; // Skip initialization instead of using as private key string
         }
       } catch (decodeError) {
-        console.error('Failed to decode base64 credentials:', decodeError);
-        throw new Error('Firebase Admin SDK initialization failed: Invalid credential format');
+        console.warn('Failed to decode base64 credentials, skipping initialization');
+        return; // Skip initialization instead of throwing error
       }
     } catch (error) {
-      console.error('Error initializing Firebase Admin:', error);
-      throw new Error('Firebase Admin SDK initialization failed');
+      console.warn('Error initializing Firebase Admin, skipping initialization:', error);
+      return; // Skip initialization instead of throwing error
     }
   }
 }

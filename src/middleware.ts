@@ -2,25 +2,58 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export function middleware(request: NextRequest) {
   const url = request.nextUrl;
-  const { pathname, host } = url;
+  const { pathname } = url;
   
-  // Check for subdomain access
-  const hostname = host.split(':')[0];
+  // Get hostname (e.g. username.minispace.dev, username.localhost:3000)
+  const hostname = request.headers.get('host') || '';
+  
+  // Define environment variables
   const isProd = process.env.NODE_ENV === 'production';
-  const mainDomain = isProd ? 'minispace.dev' : 'localhost';
+  const prodDomain = 'minispace.dev';
+  const devDomain = 'localhost';
+  const currentDomain = isProd ? prodDomain : devDomain;
   
-  // Handle subdomain routing
-  if (hostname !== mainDomain && !hostname.includes('vercel.app')) {
-    // Extract username from subdomain (e.g., username.minispace.dev)
-    const subdomain = hostname.replace(`.${mainDomain}`, '');
+  // Log request details for debugging
+  console.log(`Middleware processing: ${hostname}${pathname}`);
+  
+  // Check if this is a subdomain request
+  const isSubdomain = hostname !== currentDomain && 
+                     hostname !== `www.${currentDomain}` && 
+                     !hostname.includes('vercel.app');
+  
+  if (isSubdomain) {
+    let username = '';
     
-    // Skip if this is a special subdomain like 'www' or 'api'
-    if (['www', 'api', 'admin'].includes(subdomain)) {
+    // Extract username from the hostname
+    if (isProd) {
+      // Production: username.minispace.dev
+      username = hostname.replace(`.${prodDomain}`, '');
+    } else {
+      // Development: username.localhost:3000
+      // First remove port if it exists
+      const hostnameWithoutPort = hostname.split(':')[0];
+      
+      // Then extract username
+      if (hostnameWithoutPort.endsWith(`.${devDomain}`)) {
+        username = hostnameWithoutPort.replace(`.${devDomain}`, '');
+      } else {
+        // Direct subdomain without .localhost (e.g., 'username')
+        username = hostnameWithoutPort;
+      }
+    }
+    
+    // Skip special subdomains
+    if (['www', 'api', 'admin', 'app', 'dashboard'].includes(username)) {
       return NextResponse.next();
     }
     
-    // Create a new URL with the path format
-    const newUrl = new URL(`/${subdomain}${pathname === '/' ? '' : pathname}`, url);
+    console.log(`Subdomain request detected: ${username}`);
+    
+    // Rewrite the URL to the username route
+    // e.g., username.minispace.dev/about -> minispace.dev/username/about
+    const newUrl = new URL(`/${username}${pathname === '/' ? '' : pathname}`, request.url);
+    console.log(`Rewriting to: ${newUrl.pathname}`);
+    
     return NextResponse.rewrite(newUrl);
   }
   
@@ -30,10 +63,9 @@ export function middleware(request: NextRequest) {
     const username = pathname.split('/')[1];
     
     // For now, we'll just log access and allow all requests through
-    console.log(`Middleware: Allowing access to ${pathname} for user ${username}`);
+    console.log(`Dashboard access: ${pathname} for user ${username}`);
     
-    // In the future, you should implement a proper server-side authentication check
-    // using either JWT tokens in cookies or a session-based approach
+    // In the future, implement proper server-side authentication check
   }
   
   return NextResponse.next();

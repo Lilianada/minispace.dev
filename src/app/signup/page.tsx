@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import useAuth from '@/hooks/useAuth';
 import { signUp } from '@/lib/auth';
@@ -27,14 +27,18 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function SignUp() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, userData, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  // Get username from URL query params if available
+  const usernameFromQuery = searchParams.get('username');
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: '',
+      username: usernameFromQuery || '',
       email: '',
       password: '',
     },

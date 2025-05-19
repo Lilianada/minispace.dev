@@ -13,8 +13,7 @@ const nextConfig = {
   },
   // Enable experimental features for subdomain support
   experimental: {
-    // Enable app directory features
-    appDir: true,
+    // Next.js 15 has app directory enabled by default
   },
   // Configure hostname rewrites for development
   async rewrites() {
