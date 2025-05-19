@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
-import { deletePost } from '@/lib/api/dashboard-posts';
+import { deletePost, updatePostStatus } from '@/lib/api/dashboard-posts';
 import { getAuth } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -75,6 +75,34 @@ export default function PostsList({ initialPosts }: PostsListProps) {
     try {
       setIsLoading(true);
       setError(null);
+      setIndexUrl(null); // Reset index URL
+      
+      // Check if we're online first
+      if (!navigator.onLine) {
+        // Try to use cached posts if available
+        const cachedPosts = localStorage.getItem('cachedPosts');
+        if (cachedPosts) {
+          try {
+            const parsedPosts = JSON.parse(cachedPosts) as Post[];
+            // Apply filters to cached posts
+            const filteredPosts = applyClientSideFilters(parsedPosts, filters);
+            setPosts(filteredPosts);
+            setIsLoading(false);
+            toast({
+              title: 'Offline Mode',
+              description: 'You are currently offline. Showing cached posts.',
+              variant: 'default'
+            });
+            return;
+          } catch (e) {
+            console.error('Error parsing cached posts:', e);
+          }
+        }
+        
+        setError('You are currently offline. Please check your internet connection.');
+        setIsLoading(false);
+        return;
+      }
       
       const user = auth.currentUser;
       
@@ -86,110 +114,179 @@ export default function PostsList({ initialPosts }: PostsListProps) {
       
       // Use the subcollection structure - posts are under Users/{userId}/posts
       const postsRef = collection(db, 'Users', user.uid, 'posts');
-      let postsQuery;
       
-      // Build query based on filters
-      if (filters.status !== 'all') {
-        postsQuery = query(postsRef, where('status', '==', filters.status));
-      } else {
-        postsQuery = query(postsRef);
-      }
+      // IMPORTANT: Always use a simple query that doesn't require an index
+      // We'll apply all filters client-side to avoid index errors completely
+      const postsQuery = query(postsRef);
       
-      // Add category filter if specified
-      if (filters.category && filters.category !== 'all') {
-        postsQuery = query(postsQuery, where('category', '==', filters.category));
-      }
+      // Set a timeout for the fetch operation
+      const timeoutPromise = new Promise<Post[]>((_, reject) => 
+        setTimeout(() => reject(new Error('Firestore fetch timeout')), 10000)
+      );
       
-      // Add sorting
-      switch (filters.sort) {
-        case 'oldest':
-          postsQuery = query(postsQuery, orderBy('createdAt', 'asc'));
-          break;
-        case 'a-z':
-          postsQuery = query(postsQuery, orderBy('title', 'asc'));
-          break;
-        case 'z-a':
-          postsQuery = query(postsQuery, orderBy('title', 'desc'));
-          break;
-        case 'most-viewed':
-          postsQuery = query(postsQuery, orderBy('views', 'desc'));
-          break;
-        default:
-          postsQuery = query(postsQuery, orderBy('createdAt', 'desc'));
-      }
-      
-      try {
-        // Execute the query
-        const snapshot = await getDocs(postsQuery);
-        
-        // Transform the data
-        const fetchedPosts = snapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ...data,
-            createdAt: data.createdAt?.toDate() || new Date(),
-            updatedAt: data.updatedAt?.toDate() || new Date(),
-            publishedAt: data.publishedAt?.toDate() || null,
-            urlPath: data.urlPath || 'blog',
-            category: data.category || 'blog' // Default to 'blog' if no category
-          };
-        }) as Post[];
+      // Function to execute the query with proper error handling
+      const executeQuery = async (): Promise<Post[]> => {
+        try {
+          // Execute the query - this is a simple query that will never require an index
+          const snapshot = await getDocs(postsQuery);
           
-        // Apply search filter client-side if needed
-        let filteredPosts = fetchedPosts;
-        if (filters.search) {
-          const searchLower = filters.search.toLowerCase();
-          filteredPosts = fetchedPosts.filter(post => {
-            return (
-              post.title.toLowerCase().includes(searchLower) ||
-              (post.excerpt && post.excerpt.toLowerCase().includes(searchLower)) ||
-              (post.content && post.content.toLowerCase().includes(searchLower)) ||
-              (post.tags && post.tags.some(tag => tag.toLowerCase().includes(searchLower)))
-            );
-          });
-        }
-        
-        setPosts(filteredPosts);
-      } catch (err: any) {
-        console.error('Error executing query:', err);
-        
-        // Check if this is a missing index error
-        if (err.message && err.message.includes('index')) {
-          console.error('Missing Firestore index:', err.message);
+          // Transform the data
+          const fetchedPosts = snapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              ...data,
+              createdAt: data.createdAt?.toDate() || new Date(),
+              updatedAt: data.updatedAt?.toDate() || new Date(),
+              publishedAt: data.publishedAt?.toDate() || null,
+              urlPath: data.urlPath || 'blog',
+              category: data.category || 'blog' // Default to 'blog' if no category
+            };
+          }) as Post[];
           
-          // Try to extract the index URL from the error message
-          const indexUrlMatch = err.message.match(/https:\/\/console\.firebase\.google\.com\/[^\s]+/);
-          const extractedUrl = indexUrlMatch ? indexUrlMatch[0] : null;
+          // Cache the posts for offline use
+          localStorage.setItem('cachedPosts', JSON.stringify(fetchedPosts));
           
-          if (extractedUrl) {
-            setIndexUrl(extractedUrl);
+          return fetchedPosts;
+        } catch (err: any) {
+          console.error('Error executing query:', err);
+          
+          // Handle network-related errors
+          if (err.code === 'failed-precondition' || err.code === 'resource-exhausted' || 
+              err.code === 'unavailable' || err.code === 'deadline-exceeded' ||
+              err.message.includes('network') || err.message.includes('timeout')) {
+            console.error('Network or availability error:', err);
+            
+            // Try to use cached posts if available
+            const cachedPosts = localStorage.getItem('cachedPosts');
+            if (cachedPosts) {
+              try {
+                const parsedPosts = JSON.parse(cachedPosts) as Post[];
+                toast({
+                  title: 'Network Issue',
+                  description: 'Using cached posts due to network issues.',
+                  variant: 'default'
+                });
+                return parsedPosts;
+              } catch (e) {
+                console.error('Error parsing cached posts:', e);
+              }
+            }
           }
           
-          setError('Database index required. Please check the console for a link to create the index.');
-          
-          toast({
-            title: 'Firestore Index Required',
-            description: 'Some filtering options require a database index. Using basic view for now.',
-            variant: 'default'
-          });
+          // Re-throw the error to be caught by the outer try-catch
+          throw err;
+        }
+      };
+      
+      // Execute the query with a timeout
+      let fetchedPosts: Post[] = [];
+      try {
+        fetchedPosts = await Promise.race([executeQuery(), timeoutPromise]);
+      } catch (err) {
+        console.error('Query execution failed or timed out:', err);
+        
+        // Try to use cached posts if available
+        const cachedPosts = localStorage.getItem('cachedPosts');
+        if (cachedPosts) {
+          try {
+            fetchedPosts = JSON.parse(cachedPosts) as Post[];
+            toast({
+              title: 'Using Cached Data',
+              description: 'Showing your previously loaded posts.',
+              variant: 'default'
+            });
+          } catch (e) {
+            console.error('Error parsing cached posts:', e);
+            setError('Could not load posts. Please try again later.');
+            setIsLoading(false);
+            return;
+          }
         } else {
-          throw err; // Re-throw if it's not an index error
+          setError('Could not load posts. Please try again later.');
+          setIsLoading(false);
+          return;
         }
       }
       
-      setIsLoading(false);
-    } catch (err: any) {
-      console.error('Error fetching posts:', err);
-      setError(err.message || 'Failed to load posts');
+      // Apply all filters client-side
+      const filteredPosts = applyClientSideFilters(fetchedPosts, filters);
+      setPosts(filteredPosts);
       setIsLoading(false);
       
-      toast({
-        title: 'Error',
-        description: err.message || 'Failed to load posts',
-        variant: 'destructive'
+    } catch (err: any) {
+      console.error('Error fetching posts:', err);
+      
+      // Try to use cached posts as a last resort
+      const cachedPosts = localStorage.getItem('cachedPosts');
+      if (cachedPosts) {
+        try {
+          const parsedPosts = JSON.parse(cachedPosts) as Post[];
+          const filteredPosts = applyClientSideFilters(parsedPosts, filters);
+          setPosts(filteredPosts);
+          toast({
+            title: 'Using Saved Posts',
+            description: 'Showing your previously loaded posts.',
+            variant: 'default'
+          });
+        } catch (e) {
+          console.error('Error parsing cached posts:', e);
+          setError('Could not load posts. Please try again later.');
+        }
+      } else {
+        setError('Could not load posts. Please try again later.');
+      }
+      
+      setIsLoading(false);
+    }
+  };
+  
+  // Helper function to apply all filters client-side
+  const applyClientSideFilters = (posts: Post[], filters: any): Post[] => {
+    let filteredPosts = [...posts];
+    
+    // Apply status filter
+    if (filters.status !== 'all') {
+      filteredPosts = filteredPosts.filter(post => post.status === filters.status);
+    }
+    
+    // Apply category filter
+    if (filters.category && filters.category !== 'all') {
+      filteredPosts = filteredPosts.filter(post => post.category === filters.category);
+    }
+    
+    // Apply search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      filteredPosts = filteredPosts.filter(post => {
+        return (
+          post.title.toLowerCase().includes(searchLower) ||
+          (post.excerpt && post.excerpt.toLowerCase().includes(searchLower)) ||
+          (post.content && post.content.toLowerCase().includes(searchLower)) ||
+          (post.tags && post.tags.some(tag => tag.toLowerCase().includes(searchLower)))
+        );
       });
     }
+    
+    // Apply sort
+    switch (filters.sort) {
+      case 'oldest':
+        filteredPosts.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+        break;
+      case 'a-z':
+        filteredPosts.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case 'z-a':
+        filteredPosts.sort((a, b) => b.title.localeCompare(a.title));
+        break;
+      case 'most-viewed':
+        filteredPosts.sort((a, b) => (b.views || 0) - (a.views || 0));
+        break;
+      default: // newest
+        filteredPosts.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    }
+    
+    return filteredPosts;
   };
 
   // Handle filter changes
@@ -213,14 +310,44 @@ export default function PostsList({ initialPosts }: PostsListProps) {
   };
 
   // Handle post status change
-  const handlePostStatusChanged = (postId: string, newStatus: 'published' | 'draft') => {
-    setPosts(prev => 
-      prev.map(post => 
-        post.id === postId 
-          ? { ...post, status: newStatus } 
-          : post
-      )
-    );
+  const handlePostStatusChanged = async (postId: string, newStatus: 'published' | 'draft') => {
+    try {
+      // Show loading toast
+      toast({
+        title: newStatus === 'published' ? 'Publishing...' : 'Unpublishing...',
+        description: 'Please wait while we update your post.',
+      });
+      
+      // Call the API to update the post status
+      await updatePostStatus(postId, newStatus);
+      
+      // Update local state
+      setPosts(prev => 
+        prev.map(post => 
+          post.id === postId 
+            ? { 
+                ...post, 
+                status: newStatus,
+                publishedAt: newStatus === 'published' && !post.publishedAt ? new Date() : post.publishedAt
+              } 
+            : post
+        )
+      );
+      
+      // Show success toast
+      toast({
+        title: 'Success',
+        description: newStatus === 'published' ? 'Post published successfully.' : 'Post unpublished successfully.',
+        variant: 'success',
+      });
+    } catch (error) {
+      console.error('Error updating post status:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to update post status',
+        variant: 'destructive',
+      });
+    }
   };
 
   // Render loading state

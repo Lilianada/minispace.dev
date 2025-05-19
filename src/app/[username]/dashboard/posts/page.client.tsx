@@ -14,14 +14,22 @@ export default function PostsPage() {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!loading && !user) {
+      // Use a ref to prevent infinite loop with toast
+      const redirectToLogin = () => {
+        router.push('/login');
+      };
+      
+      // Show toast only once and then redirect
       toast({
         title: 'Authentication required',
         description: 'Please log in to access your blog posts',
         variant: 'destructive',
       });
-      router.push('/login');
+      
+      // Delay redirect slightly to allow toast to show
+      setTimeout(redirectToLogin, 100);
     }
-  }, [user, loading, router, toast]);
+  }, [user, loading, router]);  // Remove toast from dependencies
 
   if (loading) {
     return (

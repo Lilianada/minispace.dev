@@ -90,7 +90,7 @@ export default function PostMetadataForm({ form }: PostMetadataFormProps) {
                         {...field}
                         value={field.value || ''}
                         placeholder="your-post-url"
-                        className="text-sm"
+                        className="text-sm w-64"
                       />
                     </div>
                   </FormControl>

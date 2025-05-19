@@ -78,11 +78,11 @@ export default function PostForm({ initialData, isEditing = false }: PostFormPro
           .replace(/-+/g, '-')
           // Remove leading/trailing hyphens
           .replace(/^-+|-+$/g, '');
-          
+
         form.setValue('slug', slug);
       }
     });
-    
+
     return () => subscription.unsubscribe();
   }, [form, isEditing]);
 
@@ -90,7 +90,7 @@ export default function PostForm({ initialData, isEditing = false }: PostFormPro
   const handlePublish = async (data: PostFormValues) => {
     try {
       setIsSubmitting(true);
-      
+
       const user = auth.currentUser;
       if (!user) {
         throw new Error('You must be logged in to publish a blog post');
@@ -113,9 +113,9 @@ export default function PostForm({ initialData, isEditing = false }: PostFormPro
         publishedAt: serverTimestamp(),
         views: 0
       };
-      
+
       let postId;
-      
+
       if (isEditing && initialData?.id) {
         // Update existing post
         const postRef = doc(db, 'Users', user.uid, 'posts', initialData.id);
@@ -130,13 +130,13 @@ export default function PostForm({ initialData, isEditing = false }: PostFormPro
         const docRef = await addDoc(postsRef, postData);
         postId = docRef.id;
       }
-      
+
       toast({
         title: 'Success',
         description: 'Blog post published successfully',
         variant: 'success',
       });
-      
+
       // Redirect to the blog posts page after a short delay
       setTimeout(() => {
         router.push(getDashboardPath('posts'));
@@ -156,7 +156,7 @@ export default function PostForm({ initialData, isEditing = false }: PostFormPro
   const onSubmit = async (data: PostFormValues) => {
     try {
       setIsSubmitting(true);
-      
+
       const user = auth.currentUser;
       if (!user) {
         throw new Error('You must be logged in to create a blog post');
@@ -173,15 +173,19 @@ export default function PostForm({ initialData, isEditing = false }: PostFormPro
         coverImage: data.coverImage || '',
         customCSS: data.customCSS || '',
         authorId: user.uid,
-        status: 'draft',
-        createdAt: serverTimestamp(),
+        // Preserve status if editing, otherwise set to draft
+        status: isEditing && initialData?.status ? initialData.status : 'draft',
         updatedAt: serverTimestamp(),
-        publishedAt: null,
-        views: 0
+        // Only set these fields if creating a new post
+        ...(isEditing ? {} : {
+          createdAt: serverTimestamp(),
+          publishedAt: null,
+          views: 0
+        })
       };
-      
+
       let postId;
-      
+
       if (isEditing && initialData?.id) {
         // Update existing post
         const postRef = doc(db, 'Users', user.uid, 'posts', initialData.id);
@@ -196,13 +200,13 @@ export default function PostForm({ initialData, isEditing = false }: PostFormPro
         const docRef = await addDoc(postsRef, postData);
         postId = docRef.id;
       }
-      
+
       toast({
         title: 'Success',
         description: isEditing ? 'Blog post updated successfully' : 'Blog post created successfully',
         variant: 'success',
       });
-      
+
       // Redirect to the blog posts page after a short delay
       setTimeout(() => {
         router.push(getDashboardPath('posts'));
@@ -224,25 +228,27 @@ export default function PostForm({ initialData, isEditing = false }: PostFormPro
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <Card className="shadow-sm">
           <CardContent className="pt-6">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-base font-semibold">Post Title</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter a descriptive title"
-                      className="text-lg font-medium"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base font-semibold">Post Title</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Enter a descriptive title"
+                    className="text-lg font-medium"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+           
           </CardContent>
         </Card>
+
 
         <Card className="shadow-sm">
           <CardContent className="p-0">
@@ -268,15 +274,15 @@ export default function PostForm({ initialData, isEditing = false }: PostFormPro
         </Card>
 
         <div className="flex justify-end gap-4">
-          <Button 
-            type="button" 
+          <Button
+            type="button"
             variant="outline"
             onClick={() => router.push(getDashboardPath('posts'))}
             disabled={isSubmitting}
           >
             Cancel
           </Button>
-          <Button 
+          <Button
             type="submit"
             disabled={isSubmitting}
             className="min-w-[120px]"
@@ -294,7 +300,7 @@ export default function PostForm({ initialData, isEditing = false }: PostFormPro
             )}
           </Button>
           {!isEditing && (
-            <Button 
+            <Button
               type="submit"
               variant="default"
               disabled={isSubmitting}

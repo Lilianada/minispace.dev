@@ -45,7 +45,7 @@ export default function NewPostPage() {
 
   return (
     <div className="container py-6 space-y-6">
-      <h1 className="text-2xl font-bold">Create New Blog Post</h1>
+      {/* <h1 className="text-2xl font-bold">Create New Blog Post</h1> */}
       <PostForm />
     </div>
   );

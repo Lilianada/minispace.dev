@@ -14,7 +14,8 @@ import {
   DocumentData,
   QueryDocumentSnapshot,
   serverTimestamp,
-  collectionGroup
+  collectionGroup,
+  setDoc
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { getAuth } from 'firebase/auth';
@@ -296,7 +297,61 @@ export async function updatePostStatus(postId: string, status: string): Promise<
       updateData.publishedAt = serverTimestamp();
     }
     
+    // Update the post in the user's collection
     await updateDoc(postRef, updateData);
+    
+    // If publishing, also add/update in the discover collection for public access
+    if (status === 'published') {
+      // Get user data to include author information
+      const userRef = doc(db, 'Users', userId);
+      const userSnap = await getDoc(userRef);
+      const userData = userSnap.exists() ? userSnap.data() : null;
+      
+      // Create a copy in the discover collection
+      const discoverRef = doc(db, 'discover', postId);
+      
+      // Prepare the post data for the discover collection
+      const discoverData = {
+        ...postData,
+        ...updateData,
+        id: postId,
+        authorId: userId,
+        author: userData ? {
+          username: userData.username || '',
+          displayName: userData.displayName || userData.username || ''
+        } : null
+      };
+      
+      // Add or update in discover collection
+      try {
+        // First check if document exists
+        const discoverSnap = await getDoc(discoverRef);
+        
+        if (discoverSnap.exists()) {
+          // Update existing document
+          await updateDoc(discoverRef, discoverData);
+        } else {
+          // Create new document
+          await setDoc(discoverRef, discoverData);
+        }
+      } catch (err) {
+        console.error('Error updating discover collection:', err);
+        throw err;
+      }
+    } else if (status === 'draft') {
+      // If unpublishing, remove from discover collection
+      try {
+        const discoverRef = doc(db, 'discover', postId);
+        const discoverSnap = await getDoc(discoverRef);
+        
+        if (discoverSnap.exists()) {
+          await deleteDoc(discoverRef);
+        }
+      } catch (err) {
+        console.error('Error removing post from discover collection:', err);
+        // Don't throw here, as the main operation succeeded
+      }
+    }
     
     return true;
   } catch (error) {

@@ -77,26 +77,100 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (user) {
         // Get a fresh ID token and store it for API calls
         try {
-          const token = await user.getIdToken(true);  // Force refresh the token
-          
-          // Store the token in a secure cookie instead of localStorage
-          // Include SameSite and secure flags for better security
-          document.cookie = `authToken=${token}; path=/; max-age=3600; SameSite=Strict`;
-          localStorage.setItem('authTokenTimestamp', Date.now().toString());
-          console.log('Auth token refreshed and saved to cookie');
-          
-          // Fetch user data from Firestore
-          const userDoc = await getDoc(doc(db, "Users", user.uid));
-          if (userDoc.exists()) {
-            const userData = userDoc.data() as UserData;
-            setUserData(userData);
-            
-            // Store username in localStorage and cookie for route access
-            localStorage.setItem('username', userData.username);
-            document.cookie = `username=${userData.username}; path=/; max-age=3600; SameSite=Strict`;
+          // First check if we're online
+          if (!navigator.onLine) {
+            console.log('Device is offline. Using cached user data if available.');
+            // Try to get cached user data from localStorage
+            const cachedUserData = localStorage.getItem('cachedUserData');
+            if (cachedUserData) {
+              try {
+                const parsedUserData = JSON.parse(cachedUserData) as UserData;
+                setUserData(parsedUserData);
+              } catch (e) {
+                console.error('Error parsing cached user data:', e);
+              }
+            }
+            setLoading(false);
+            return; // Exit early, we'll try again when online
           }
+          
+          const token = await user.getIdToken(true).catch(err => {
+            console.error('Error refreshing token (likely offline):', err);
+            return null;
+          });
+          
+          if (token) {
+            // Store the token in a secure cookie instead of localStorage
+            // Include SameSite and secure flags for better security
+            document.cookie = `authToken=${token}; path=/; max-age=3600; SameSite=Strict`;
+            localStorage.setItem('authTokenTimestamp', Date.now().toString());
+            console.log('Auth token refreshed and saved to cookie');
+          }
+          
+          // Fetch user data from Firestore with timeout to handle slow connections
+          const fetchUserData = async () => {
+            try {
+              const userDoc = await getDoc(doc(db, "Users", user.uid));
+              if (userDoc.exists()) {
+                const userData = userDoc.data() as UserData;
+                setUserData(userData);
+                
+                // Cache user data for offline use
+                localStorage.setItem('cachedUserData', JSON.stringify(userData));
+                
+                // Store username in localStorage and cookie for route access
+                localStorage.setItem('username', userData.username);
+                document.cookie = `username=${userData.username}; path=/; max-age=3600; SameSite=Strict`;
+              }
+            } catch (error) {
+              console.error("Error fetching user data:", error);
+              // Try to use cached data if available
+              const cachedUserData = localStorage.getItem('cachedUserData');
+              if (cachedUserData) {
+                try {
+                  const parsedUserData = JSON.parse(cachedUserData) as UserData;
+                  setUserData(parsedUserData);
+                  console.log('Using cached user data due to fetch error');
+                } catch (e) {
+                  console.error('Error parsing cached user data:', e);
+                }
+              }
+            }
+          };
+          
+          // Set a timeout for the fetch operation
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Firestore fetch timeout')), 5000)
+          );
+          
+          await Promise.race([fetchUserData(), timeoutPromise]).catch(err => {
+            console.error('Firestore fetch timed out or failed:', err);
+            // Try to use cached data
+            const cachedUserData = localStorage.getItem('cachedUserData');
+            if (cachedUserData) {
+              try {
+                const parsedUserData = JSON.parse(cachedUserData) as UserData;
+                setUserData(parsedUserData);
+                console.log('Using cached user data due to timeout');
+              } catch (e) {
+                console.error('Error parsing cached user data:', e);
+              }
+            }
+          });
+          
         } catch (error) {
-          console.error("Error fetching user data or token:", error);
+          console.error("Error in auth process:", error);
+          // Try to use cached data if available
+          const cachedUserData = localStorage.getItem('cachedUserData');
+          if (cachedUserData) {
+            try {
+              const parsedUserData = JSON.parse(cachedUserData) as UserData;
+              setUserData(parsedUserData);
+              console.log('Using cached user data due to auth error');
+            } catch (e) {
+              console.error('Error parsing cached user data:', e);
+            }
+          }
         }
       } else {
         setUserData(null);
@@ -104,6 +178,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         localStorage.removeItem('authTokenTimestamp');
         localStorage.removeItem('username');
+        // Keep cachedUserData for potential offline login
+      }
+      
+      setLoading(false);
+    }, (error) => {
+      // Handle auth state change errors (often network related)
+      console.error('Auth state change error:', error);
+      
+      // If we have cached user data, use it
+      const cachedUserData = localStorage.getItem('cachedUserData');
+      if (cachedUserData) {
+        try {
+          const parsedUserData = JSON.parse(cachedUserData) as UserData;
+          setUserData(parsedUserData);
+          console.log('Using cached user data due to auth state change error');
+        } catch (e) {
+          console.error('Error parsing cached user data:', e);
+        }
       }
       
       setLoading(false);

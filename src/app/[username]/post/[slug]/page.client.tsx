@@ -36,8 +36,21 @@ export default function PostClient({ username, slug }: { username: string; slug:
       try {
         setLoading(true);
         
-        // Query posts by slug and ensure they're published
-        const postsRef = collection(db, 'posts');
+        // First, find the user by username
+        const usersRef = collection(db, 'Users');
+        const userQuery = query(usersRef, where('username', '==', username), limit(1));
+        const userSnapshot = await getDocs(userQuery);
+        
+        if (userSnapshot.empty) {
+          setError('User not found');
+          setLoading(false);
+          return;
+        }
+        
+        const userId = userSnapshot.docs[0].id;
+        
+        // Now query the user's posts subcollection by slug
+        const postsRef = collection(db, `Users/${userId}/posts`);
         const q = query(
           postsRef,
           where('slug', '==', slug),
@@ -57,10 +70,21 @@ export default function PostClient({ username, slug }: { username: string; slug:
         const postData = postDoc.data();
         
         // Increment view count
-        const postRef = doc(db, 'posts', postDoc.id);
+        const postRef = doc(db, `Users/${userId}/posts`, postDoc.id);
         await updateDoc(postRef, {
           views: increment(1)
         });
+        
+        // Also try to increment in the discover collection if it exists there
+        try {
+          const discoverPostRef = doc(db, 'discover', postDoc.id);
+          await updateDoc(discoverPostRef, {
+            views: increment(1)
+          });
+        } catch (error) {
+          // It's okay if this fails - the post might not be in the discover collection
+          console.log('Note: Post not found in discover collection or failed to update views');
+        }
         
         setPost({
           id: postDoc.id,

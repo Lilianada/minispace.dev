@@ -83,7 +83,7 @@ export default function EditPostPage({ postId }: EditPostPageProps) {
     if (!loading) {
       fetchPost();
     }
-  }, [postId, user, loading, toast]);
+  }, [postId, user, loading]);
 
   // Redirect to login if not authenticated
   useEffect(() => {
