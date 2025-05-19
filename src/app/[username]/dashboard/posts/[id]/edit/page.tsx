@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: 'Edit your existing blog post',
 };
 
-export default function Page({ params }: { params: { id: string; username: string } }) {
-  return <EditPostPage postId={params.id} />;
+export default function Page(props: {
+  params: { id: string; username: string };
+}) {
+  return <EditPostPage postId={props.params.id} />;
 }
