@@ -1,5 +1,6 @@
 // Import themes by category
 import RubikTheme from './personal/rubik';
+import PortfolioTheme from './personal/portfolio';
 
 // Theme categories
 export const themeCategories = [
@@ -7,7 +8,7 @@ export const themeCategories = [
     id: 'personal',
     name: 'Personal',
     description: 'Themes designed for personal blogs and portfolios',
-    themes: [RubikTheme],
+    themes: [RubikTheme, PortfolioTheme],
   },
   // Additional categories can be added here as they are developed
   // {

@@ -175,7 +175,7 @@ export default function ThemeSelector({ currentTheme, userId, userData: propUser
                             )}
                           </CardTitle>
                           <CardDescription>{theme.description}</CardDescription>
-                          <div className="mt-2">
+                          <div className="mt-2 flex flex-wrap gap-2">
                             <Button 
                               variant="outline" 
                               size="sm"
@@ -188,6 +188,25 @@ export default function ThemeSelector({ currentTheme, userId, userData: propUser
                               }}
                             >
                               Preview Theme
+                            </Button>
+                            
+                            <Button 
+                              variant={selectedTheme === theme.id ? "secondary" : "default"}
+                              size="sm"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setSelectedTheme(theme.id);
+                                // Apply the theme immediately if it's not already selected
+                                if (selectedTheme !== theme.id) {
+                                  // We'll use a timeout to allow the UI to update first
+                                  setTimeout(() => handleThemeChange(), 100);
+                                }
+                              }}
+                              disabled={isUpdating || selectedTheme === currentTheme && selectedTheme === theme.id}
+                            >
+                              {isUpdating && selectedTheme === theme.id ? 'Applying...' : 
+                               selectedTheme === currentTheme && selectedTheme === theme.id ? 'Applied' : 'Apply Theme'}
                             </Button>
                           </div>
                         </CardHeader>
@@ -213,14 +232,6 @@ export default function ThemeSelector({ currentTheme, userId, userData: propUser
           </TabsContent>
         ))}
       </Tabs>
-
-      <Button 
-        onClick={handleThemeChange} 
-        disabled={selectedTheme === currentTheme || isUpdating}
-        className="w-full md:w-auto"
-      >
-        {isUpdating ? 'Updating...' : 'Apply Theme'}
-      </Button>
     </div>
   );
 }

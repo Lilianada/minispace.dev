@@ -142,6 +142,11 @@ export default function PostClient({ username, slug }: { username: string; slug:
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Custom CSS - moved to the top level for global scope */}
+      {post.customCSS && (
+        <style dangerouslySetInnerHTML={{ __html: post.customCSS }} />
+      )}
+      
       <div className="container max-w-4xl mx-auto py-8 px-4">
         {/* Post Header */}
         <div className="mb-8">
@@ -182,13 +187,8 @@ export default function PostClient({ username, slug }: { username: string; slug:
           </div>
         )}
 
-        {/* Custom CSS */}
-        {post.customCSS && (
-          <style dangerouslySetInnerHTML={{ __html: post.customCSS }} />
-        )}
-
         {/* Post Content */}
-        <article className="prose dark:prose-invert max-w-none">
+        <article className="prose dark:prose-invert max-w-none post-content">
           <EnhancedMarkdownRenderer 
             content={post.content} 
             allowHtml={true} 

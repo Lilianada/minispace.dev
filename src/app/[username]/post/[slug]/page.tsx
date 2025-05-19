@@ -10,7 +10,10 @@ interface PostPageProps {
 }
 
 export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
-  const { username, slug } = params;
+  // Await the params object to fix the Next.js warning
+  const paramsObj = await Promise.resolve(params);
+  const username = paramsObj.username;
+  const slug = paramsObj.slug;
   
   // In a real implementation, you would fetch the post data here
   // and use it to generate dynamic metadata
@@ -22,7 +25,10 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
 }
 
 export default async function PostPage({ params }: PostPageProps) {
-  const { username, slug } = params;
+  // Await the params object to fix the Next.js warning
+  const paramsObj = await Promise.resolve(params);
+  const username = paramsObj.username;
+  const slug = paramsObj.slug;
   
   if (!username || !slug) {
     return notFound();
