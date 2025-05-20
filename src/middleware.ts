@@ -13,6 +13,20 @@ export function middleware(request: NextRequest) {
   const devDomain = 'localhost';
   const currentDomain = isProd ? prodDomain : devDomain;
   
+  // Skip static assets and API routes
+  if (
+    pathname.startsWith('/_next/') ||
+    pathname.startsWith('/api/') ||
+    pathname.includes('/favicon.ico') ||
+    pathname.includes('.png') ||
+    pathname.includes('.jpg') ||
+    pathname.includes('.svg') ||
+    pathname.includes('.css') ||
+    pathname.includes('.js')
+  ) {
+    return NextResponse.next();
+  }
+  
   // Log request details for debugging
   console.log(`Middleware processing: ${hostname}${pathname}`);
   
@@ -56,7 +70,16 @@ export function middleware(request: NextRequest) {
       return NextResponse.next();
     }
     
-    console.log(`Subdomain request detected: ${username}`);
+    console.log(`Subdomain request detected: ${username}, pathname: ${pathname}`);
+    
+    // Handle the special case for demouser to ensure it always works
+    if (username === 'demouser') {
+      console.log('Demo user detected, using special handling');
+      // For demo user, we'll always rewrite to the demouser route
+      const newUrl = new URL(`/demouser${pathname === '/' ? '' : pathname}`, request.url);
+      console.log(`Rewriting demo user to: ${newUrl.pathname}`);
+      return NextResponse.rewrite(newUrl);
+    }
     
     // Rewrite the URL to the username route
     // e.g., username.minispace.dev/about -> minispace.dev/username/about

@@ -100,43 +100,76 @@ export default function UserSiteLayout({ username, children }: UserSiteLayoutPro
     );
   }
 
-  if (error) {
+  // If there's an error or no theme component, use the default theme as fallback
+  if (error || !themeComponent) {
+    console.warn(`Using fallback theme due to: ${error || 'Theme component not found'}`);    
+    // Get the default theme (first theme in allThemes)
+    const defaultTheme = allThemes[0];
+    const FallbackLayout = defaultTheme.components.Layout;
+    
+    // Use the default theme's config with some customizations
+    const fallbackConfig = {
+      ...defaultTheme.config,
+      layout: {
+        ...defaultTheme.config.layout,
+        header: {
+          ...defaultTheme.config.layout.header,
+          title: `${username}'s Site`,
+          menu: [
+            { label: 'Home', path: `/${username}` },
+            { label: 'Posts', path: `/${username}/posts` },
+            { label: 'About', path: `/${username}/about` },
+          ]
+        }
+      }
+    };
+    
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <h1 className="text-2xl font-bold text-destructive mb-4">{error}</h1>
-        <p className="text-muted-foreground">
-          There was an error loading this site. Please try again later.
-        </p>
-      </div>
-    );
-  }
-
-  if (!themeComponent) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <h1 className="text-2xl font-bold mb-4">Theme not available</h1>
-        <p className="text-muted-foreground">
-          The selected theme is not available. Please select a different theme.
-        </p>
-      </div>
+      <FallbackLayout
+        config={fallbackConfig}
+      >
+        {error ? (
+          <div className="container mx-auto py-8 px-4">
+            <div className="bg-destructive/10 text-destructive p-4 rounded-md mb-6">
+              <h2 className="text-lg font-semibold mb-2">Theme Error</h2>
+              <p>{error}</p>
+              <p className="mt-2 text-sm">Using default theme as fallback.</p>
+            </div>
+            {children}
+          </div>
+        ) : children}
+      </FallbackLayout>
     );
   }
 
   // Render the user's site with their chosen theme
   const ThemeLayout = themeComponent;
   
+  // Get the theme's config and customize it for the user
+  const themeInstance = allThemes.find(theme => 
+    theme.name === userTheme?.themeName || theme === allThemes[0]
+  );
+  
+  // Create a customized config based on the theme's config
+  const customConfig = {
+    ...themeInstance?.config,
+    layout: {
+      ...themeInstance?.config.layout,
+      header: {
+        ...themeInstance?.config.layout.header,
+        title: `${username}'s Site`,
+        menu: [
+          { label: 'Home', path: `/${username}` },
+          { label: 'Posts', path: `/${username}/posts` },
+          { label: 'About', path: `/${username}/about` },
+        ]
+      }
+    }
+  };
+  
   return (
     <ThemeLayout 
-      config={{
-        siteName: `${username}'s Site`,
-        description: `Personal site of ${username}`,
-        theme: userTheme?.themeName || 'Default',
-        navigation: [
-          { label: 'Home', href: `/${username}` },
-          { label: 'Posts', href: `/${username}/posts` },
-          { label: 'About', href: `/${username}/about` },
-        ]
-      }}
+      config={customConfig}
     >
       {children}
     </ThemeLayout>

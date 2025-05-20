@@ -71,11 +71,20 @@ export default function UserSiteClient({ username }: UserSiteClientProps) {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <h1 className="text-2xl font-bold text-destructive mb-4">{error}</h1>
-        <Button onClick={() => router.push('/')}>
-          Return to Home
-        </Button>
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-background">
+        <h1 className="text-4xl font-bold text-destructive mb-4">404</h1>
+        <h2 className="text-2xl font-semibold mb-6">{error}</h2>
+        <p className="text-muted-foreground mb-8 text-center max-w-md">
+          The user profile you're looking for doesn't exist or hasn't been set up yet.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Button onClick={() => router.push('/')} variant="default">
+            Return to Home
+          </Button>
+          <Button onClick={() => router.push('/signup')} variant="outline">
+            Create an Account
+          </Button>
+        </div>
       </div>
     );
   }

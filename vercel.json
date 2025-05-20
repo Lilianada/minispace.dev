@@ -5,16 +5,6 @@
   "buildCommand": "next build",
   "rewrites": [
     {
-      "source": "/:path*",
-      "has": [
-        {
-          "type": "host",
-          "value": "(?<subdomain>.*)\\.minispace\\.dev"
-        }
-      ],
-      "destination": "/$subdomain/:path*"
-    },
-    {
       "source": "/_next/static/:path*",
       "destination": "/_next/static/:path*"
     },
@@ -25,6 +15,48 @@
     {
       "source": "/favicon.ico",
       "destination": "/favicon.ico"
+    },
+    {
+      "source": "/images/:path*",
+      "destination": "/images/:path*"
+    },
+    {
+      "source": "/assets/:path*",
+      "destination": "/assets/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "(?<subdomain>.*)\\.minispace\\.dev"
+        }
+      ],
+      "destination": "/$subdomain/:path*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, s-maxage=86400"
+        }
+      ]
+    },
+    {
+      "source": "/_next/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
     }
   ],
   "build": {
