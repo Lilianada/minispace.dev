@@ -3,7 +3,6 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "buildCommand": "next build",
-  "ignoreCommand": "echo 'Ignoring build errors to ensure deployment succeeds'",
   "rewrites": [
     {
       "source": "/:path*",
