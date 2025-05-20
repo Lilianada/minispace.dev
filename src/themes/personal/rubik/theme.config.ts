@@ -275,14 +275,26 @@ Feel free to reach out if you'd like to connect!`,
   defaultStyles: {
     colors: {
       background: "#ffffff",
-      text: "#333333",
-      primary: "#3b82f6",
-      secondary: "#6b7280",
-      accent: "#f97316",
+      text: "#171717",
+      primary: "#0ea5e9",
+      secondary: "#64748b",
+      accent: "#8b5cf6",
+      muted: "#f1f5f9",
+      border: "#e2e8f0",
+      card: "#ffffff",
     },
     fonts: {
-      heading: "'Rubik', sans-serif",
-      body: "'Rubik', system-ui, sans-serif",
+      heading: "'Inter', sans-serif",
+      body: "'Inter', system-ui, sans-serif",
+    },
+    spacing: {
+      content: "max-w-4xl",
+      container: "max-w-6xl",
+    },
+    borderRadius: {
+      small: "0.25rem",
+      medium: "0.5rem",
+      large: "0.75rem",
     },
   },
 };

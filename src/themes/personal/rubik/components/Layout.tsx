@@ -22,15 +22,21 @@ export default function Layout({ children, config, showSidebar = false }: Layout
       />
       
       <main className="flex-grow flex">
-        {showSidebar && config.layout.sidebar?.visible && (
-          <Sidebar 
-            title={config.layout.sidebar.title} 
-            content={config.layout.sidebar.content} 
-          />
-        )}
-        
-        <div className={`flex-grow ${showSidebar ? 'max-w-3xl' : 'max-w-4xl'} mx-auto px-4 py-8 w-full`}>
-          {children}
+        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 flex">
+          {showSidebar && config.layout.sidebar?.visible && (
+            <aside className="hidden lg:block w-64 shrink-0 mr-8">
+              <div className="sticky top-24">
+                <Sidebar 
+                  title={config.layout.sidebar.title} 
+                  content={config.layout.sidebar.content} 
+                />
+              </div>
+            </aside>
+          )}
+          
+          <div className="flex-grow w-full">
+            {children}
+          </div>
         </div>
       </main>
       

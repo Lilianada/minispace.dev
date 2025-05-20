@@ -21,32 +21,40 @@ export default function Header({ title, menu, sticky = true }: HeaderProps) {
   };
 
   return (
-    <header className={`bg-white border-b border-gray-100 ${sticky ? 'sticky top-0 z-10' : ''}`}>
-      <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+    <header className={`bg-card border-b border-border ${sticky ? 'sticky top-0 z-50' : ''}`}>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
         <div className="flex-shrink-0">
-          <Link href="/" className="text-xl font-medium text-gray-900 hover:text-primary">
+          <Link href="/" className="text-xl font-semibold text-text hover:text-primary transition-colors">
             {title}
           </Link>
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex space-x-8">
+        <nav className="hidden md:flex items-center space-x-1">
           {menu.map((item) => (
             <Link
               key={item.path}
               href={item.path}
-              className="text-gray-600 hover:text-primary font-medium"
+              className="px-4 py-2 rounded-md text-secondary hover:text-primary hover:bg-muted font-medium transition-colors"
             >
               {item.label}
             </Link>
           ))}
+          <div className="ml-4 pl-4 border-l border-border">
+            <Link 
+              href="/signin" 
+              className="px-4 py-2 rounded-md bg-primary text-white font-medium hover:bg-primary/90 transition-colors"
+            >
+              Sign In
+            </Link>
+          </div>
         </nav>
 
         {/* Mobile Menu Button */}
         <div className="md:hidden">
           <button
             onClick={toggleMenu}
-            className="text-gray-600 hover:text-primary focus:outline-none"
+            className="p-2 rounded-md text-secondary hover:text-primary hover:bg-muted focus:outline-none transition-colors"
             aria-label="Toggle menu"
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -56,19 +64,28 @@ export default function Header({ title, menu, sticky = true }: HeaderProps) {
 
       {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100">
-          <div className="max-w-4xl mx-auto px-4 py-2">
-            <nav className="flex flex-col space-y-4 py-4">
+        <div className="md:hidden bg-card border-t border-border">
+          <div className="max-w-6xl mx-auto px-4 py-4">
+            <nav className="flex flex-col space-y-2">
               {menu.map((item) => (
                 <Link
                   key={item.path}
                   href={item.path}
-                  className="text-gray-600 hover:text-primary font-medium py-2"
+                  className="px-4 py-3 rounded-md text-secondary hover:text-primary hover:bg-muted font-medium transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.label}
                 </Link>
               ))}
+              <div className="pt-2 mt-2 border-t border-border">
+                <Link 
+                  href="/signin" 
+                  className="block px-4 py-3 rounded-md bg-primary text-white font-medium hover:bg-primary/90 transition-colors text-center"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Sign In
+                </Link>
+              </div>
             </nav>
           </div>
         </div>
