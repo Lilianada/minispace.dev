@@ -56,11 +56,27 @@ function initializeAdminApp() {
 }
 
 // Initialize the admin app
-initializeAdminApp();
+try {
+  initializeAdminApp();
+} catch (error) {
+  console.warn('Failed to initialize Firebase Admin SDK:', error);
+}
 
-// Export the admin SDK instances
-export const adminAuth = getAuth();
-export const adminDb = getFirestore();
+// Export the admin SDK instances safely
+let adminAuth: ReturnType<typeof getAuth> | undefined;
+let adminDb: ReturnType<typeof getFirestore> | undefined;
+
+try {
+  // Only try to get these if we have apps initialized
+  if (getApps().length > 0) {
+    adminAuth = getAuth();
+    adminDb = getFirestore();
+  }
+} catch (error) {
+  console.warn('Failed to get Firebase Admin instances:', error);
+}
+
+export { adminAuth, adminDb };
 
 /**
  * Verify a Firebase ID token
@@ -70,6 +86,11 @@ export async function verifyAuthToken(token: string) {
     console.log('Verifying auth token:', token ? `Length: ${token.length}` : 'No token');
     if (!token) {
       console.warn('Empty token provided to verifyAuthToken');
+      return null;
+    }
+    
+    if (!adminAuth) {
+      console.warn('Firebase Admin Auth not initialized');
       return null;
     }
     

@@ -16,6 +16,12 @@ export function middleware(request: NextRequest) {
   // Log request details for debugging
   console.log(`Middleware processing: ${hostname}${pathname}`);
   
+  // In development, check if this is actually localhost itself (not a subdomain)
+  if (!isProd && (hostname === 'localhost:3000' || hostname === 'localhost')) {
+    console.log('Main localhost domain detected, no rewrite needed');
+    return NextResponse.next();
+  }
+  
   // Check if this is a subdomain request
   const isSubdomain = hostname !== currentDomain && 
                      hostname !== `www.${currentDomain}` && 
@@ -36,9 +42,12 @@ export function middleware(request: NextRequest) {
       // Then extract username
       if (hostnameWithoutPort.endsWith(`.${devDomain}`)) {
         username = hostnameWithoutPort.replace(`.${devDomain}`, '');
-      } else {
-        // Direct subdomain without .localhost (e.g., 'username')
+      } else if (hostnameWithoutPort !== devDomain) {
+        // Only treat as subdomain if it's not the main domain
         username = hostnameWithoutPort;
+      } else {
+        // This is the main domain, no rewrite needed
+        return NextResponse.next();
       }
     }
     

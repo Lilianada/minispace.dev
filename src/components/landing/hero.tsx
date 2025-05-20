@@ -17,11 +17,11 @@ export default function HeroSection() {
   const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const { toast } = useToast();
-  
+
   // Check if username is available
   const checkUsername = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!username.trim()) {
       toast({
         title: "Username required",
@@ -30,7 +30,7 @@ export default function HeroSection() {
       });
       return;
     }
-    
+
     // Username validation
     const usernameRegex = /^[a-zA-Z0-9_-]{3,20}$/;
     if (!usernameRegex.test(username)) {
@@ -41,22 +41,22 @@ export default function HeroSection() {
       });
       return;
     }
-    
+
     try {
       setIsChecking(true);
-      
+
       // Check if username exists in Firestore
       const usersRef = collection(db, 'Users');
       const q = query(usersRef, where('username', '==', username.toLowerCase()));
       const querySnapshot = await getDocs(q);
-      
+
       const available = querySnapshot.empty;
       setIsAvailable(available);
-      
+
       if (available) {
         // Show success message
         setShowSuccess(true);
-        
+
         // Wait 3 seconds before redirecting
         setTimeout(() => {
           // If username is available, redirect to signup page with username in query params
@@ -82,7 +82,7 @@ export default function HeroSection() {
       }
     }
   };
-  
+
   return (
     <section className="container mx-auto px-4 pt-20 pb-16 sm:pt-24 sm:pb-20 text-center min-h-[calc(100vh-80px)] flex flex-col justify-center items-center">
       <div className="inline-flex items-center justify-center rounded-full border border-accent/30 bg-accent/10 py-1 px-3 text-xs font-medium text-accent mb-6 w-fit">
@@ -90,15 +90,15 @@ export default function HeroSection() {
         <span className="mx-1">•</span>
         <span>Join Our Beta Community Today</span>
       </div>
-      
+
       <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground max-w-3xl mx-auto">
         Your Own Mini Space on the Internet in Minutes
       </h1>
-      
+
       <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto">
         Create a stunning, lightning-fast blog without the complexity. Express yourself, share your ideas, and build your audience with Minispace's intuitive platform.
       </p>
-      
+
       <div className="mt-10 w-full max-w-md mx-auto">
         {showSuccess ? (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
@@ -113,28 +113,40 @@ export default function HeroSection() {
             </div>
           </div>
         ) : (
-          <form onSubmit={checkUsername} className="relative">
-            <div className="relative flex items-center w-full rounded-full overflow-hidden border border-border shadow-sm bg-white">
+          <form onSubmit={checkUsername} className="max-w-xl mx-auto">
+          {/* Container with single border around both input and button */}
+          <div className="relative flex items-stretch w-full border border-border rounded-3xl overflow-hidden shadow-sm bg-white">
+            {/* Input field - flex-grow to take available space */}
+            <div className="flex-grow">
               <Input
                 type="text"
                 placeholder="Enter your dream username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 pl-6 h-14 text-base"
-                style={{ paddingRight: '160px' }} /* Ensure text doesn't go under button */
+                className="w-full border-0 rounded-none h-14 px-4 text-base focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
               />
+            </div>
+            
+            {/* Subtle separator line */}
+            <div className="w-px h-10 self-center bg-gray-200"></div>
+            
+            {/* Button container with fixed width */}
+            <div className="flex-shrink-0 p-1 w-40">
               <Button 
                 type="submit" 
-                className="absolute right-1 top-1/2 transform -translate-y-1/2 px-6 py-1 h-12 rounded-full"
+                variant="default"
+                className="w-full h-12 rounded-3xl text-sm font-medium"
                 disabled={isChecking}
               >
-                {isChecking ? 'Checking...' : 'Claim Your Space'}
+                {isChecking ? 'Checking...' : 'Claim Space'}
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground mt-2 text-center">
-              Check if your dream username is available on minispace and get started in seconds
-            </p>
-          </form>
+          </div>
+          
+          <p className="text-xs text-muted-foreground text-center mt-2">
+            Check if your dream username is available on minispace to get started.
+          </p>
+        </form>
         )}
       </div>
     </section>

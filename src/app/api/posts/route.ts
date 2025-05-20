@@ -2,15 +2,20 @@
 import { NextResponse } from 'next/server';
 
 // Safely import Firebase Admin
-let getAuthUser;
-let adminDb;
+let getAuthUser: any;
+let adminDb: any;
 
-try {
-  const admin = require('@/lib/firebase/admin');
-  getAuthUser = admin.getAuthUser;
-  adminDb = admin.adminDb;
-} catch (error) {
-  console.error('Error importing Firebase Admin:', error);
+// Skip Firebase Admin initialization during build
+if (process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV === 'preview') {
+  console.log('Skipping Firebase Admin import during build');
+} else {
+  try {
+    const admin = require('@/lib/firebase/admin');
+    getAuthUser = admin.getAuthUser;
+    adminDb = admin.adminDb;
+  } catch (error) {
+    console.warn('Error importing Firebase Admin:', error);
+  }
 }
 
 export async function GET(request: Request) {
@@ -103,7 +108,7 @@ export async function GET(request: Request) {
         [key: string]: any; // Allow other properties
       }
       
-      let posts = snapshot.docs.map(doc => ({
+      let posts = snapshot.docs.map((doc: { id: any; data: () => any; }) => ({
         id: doc.id,
         ...doc.data()
       })) as Post[];
