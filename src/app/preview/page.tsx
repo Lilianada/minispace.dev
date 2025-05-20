@@ -12,7 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function SubdomainPreviewPage() {
   const searchParams = useSearchParams();
-  const subdomain = searchParams.get('subdomain');
+  const subdomain = searchParams ? searchParams.get('subdomain') : null;
   
   const [isLoading, setIsLoading] = useState(true);
   const [userData, setUserData] = useState<any>(null);

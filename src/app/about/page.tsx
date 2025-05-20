@@ -1,12 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import Link from 'next/link';
 import Footer from '../../components/landing/footer';
 import Header from '../../components/landing/navbar';
 import { Card, CardTitle } from '@/components/ui/card';
 import { CheckIcon, X } from 'lucide-react';
 import Image from 'next/image';
+import LoadingScreen from '@/components/LoadingScreen';
 
 const AboutPage = () => {
   const loveToHost = [
@@ -26,6 +27,7 @@ const AboutPage = () => {
     "Spam, Illegal, Harmful, or Harmful Content",
   ];
   return (
+    <Suspense fallback={<LoadingScreen/>}>
     <div className="test-environment">
       {/* Header */}
      <Header />
@@ -231,6 +233,7 @@ const AboutPage = () => {
       {/* Footer */}
       <Footer />
     </div>
+    </Suspense>
   );
 };
 

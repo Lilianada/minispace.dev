@@ -1,8 +1,11 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Suspense } from 'react';
+import LoadingScreen from '@/components/LoadingScreen';
 
 export default function NotFound() {
   return (
+    <Suspense fallback={<LoadingScreen/>}> 
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
       <h1 className="text-4xl font-bold mb-4">404</h1>
       <h2 className="text-2xl font-medium mb-6">Page Not Found</h2>
@@ -15,5 +18,6 @@ export default function NotFound() {
         </Link>
       </Button>
     </div>
+    </Suspense>
   );
 }

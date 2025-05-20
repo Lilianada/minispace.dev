@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 
-export function ProgressBar() {
+// Internal component that uses useSearchParams
+function ProgressBarContent() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [progress, setProgress] = useState(0);
   const pathname = usePathname();
@@ -46,5 +47,14 @@ export function ProgressBar() {
         style={{ width: `${progress}%` }}
       />
     </div>
+  );
+}
+
+// Exported component wrapped in Suspense
+export function ProgressBar() {
+  return (
+    <Suspense fallback={null}>
+      <ProgressBarContent />
+    </Suspense>
   );
 }

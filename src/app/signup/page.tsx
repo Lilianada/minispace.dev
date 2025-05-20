@@ -33,7 +33,7 @@ export default function SignUp() {
   const [error, setError] = useState('');
   
   // Get username from URL query params if available
-  const usernameFromQuery = searchParams.get('username');
+  const usernameFromQuery = searchParams ? searchParams.get('username') : null;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
