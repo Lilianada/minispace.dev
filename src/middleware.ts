@@ -80,12 +80,12 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-// Run middleware on all routes
+// Run middleware on all routes, but exclude static files and API routes
 export const config = {
   matcher: [
     // Dashboard routes
     '/:username/dashboard/:path*',
-    // All routes for subdomain handling
-    '/(.*)',
+    // All routes for subdomain handling, except Next.js static files and API routes
+    '/((?!_next/static|_next/image|favicon.ico|api/).*)',
   ],
 };

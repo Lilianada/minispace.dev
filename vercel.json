@@ -13,6 +13,18 @@
         }
       ],
       "destination": "/$subdomain/:path*"
+    },
+    {
+      "source": "/_next/static/:path*",
+      "destination": "/_next/static/:path*"
+    },
+    {
+      "source": "/_next/image/:path*",
+      "destination": "/_next/image/:path*"
+    },
+    {
+      "source": "/favicon.ico",
+      "destination": "/favicon.ico"
     }
   ],
   "build": {
