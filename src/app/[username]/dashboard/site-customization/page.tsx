@@ -22,5 +22,12 @@ export default async function SiteCustomizationPage({ params }: SiteCustomizatio
     return notFound();
   }
   
+  console.log(`Rendering site customization page for user: ${username}`);
+  
+  // Special handling for demouser - makes debugging easier
+  if (username === 'demouser') {
+    console.log('Demo user detected in site customization page');
+  }
+  
   return <SiteCustomizationClient username={username} />;
 }

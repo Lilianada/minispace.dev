@@ -131,4 +131,4 @@ Think of Minispace as:
 
 ---
 
-Would you like mock copy for landing page sections that match this tone and direction (e.g., hero headline, intro paragraph, feature blurbs, call-to-actions)?
+Minispace for digital gardens, digital zettelkasten, wikis, personal knowledge management. Personal blogs and websites. Most people want static site builders, heavy on texts, one they could figure out easily, and even customise easily. 

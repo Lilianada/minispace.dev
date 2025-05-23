@@ -11,8 +11,7 @@ import DomainSetupSection from '@/components/docs/DomainSetupSection';
 import HostingOptionsSection from '@/components/docs/HostingOptionsSection';
 import GitHubPagesSection from '@/components/docs/GitHubPagesSection';
 import FAQSection from '@/components/docs/FAQSection';
-import DocsFooter from '@/components/docs/DocsFooter';
-import Footer from '../test/components/Footer';
+import Footer from '@/components/landing/footer';
 
 export default function DocsPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

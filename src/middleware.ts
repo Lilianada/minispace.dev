@@ -7,6 +7,10 @@ export function middleware(request: NextRequest) {
   // Get hostname (e.g. username.minispace.dev, username.localhost:3000)
   const hostname = request.headers.get('host') || '';
   
+  // Improved logging
+  console.log(`Middleware processing request: ${hostname}${pathname}`);
+  try {
+  
   // Define environment variables
   const isProd = process.env.NODE_ENV === 'production';
   const prodDomain = 'minispace.dev';
@@ -72,14 +76,6 @@ export function middleware(request: NextRequest) {
     
     console.log(`Subdomain request detected: ${username}, pathname: ${pathname}`);
     
-    // Handle the special case for demouser to ensure it always works
-    if (username === 'demouser') {
-      console.log('Demo user detected, using special handling');
-      // For demo user, we'll always rewrite to the demouser route
-      const newUrl = new URL(`/demouser${pathname === '/' ? '' : pathname}`, request.url);
-      console.log(`Rewriting demo user to: ${newUrl.pathname}`);
-      return NextResponse.rewrite(newUrl);
-    }
     
     // Rewrite the URL to the username route
     // e.g., username.minispace.dev/about -> minispace.dev/username/about
@@ -94,13 +90,58 @@ export function middleware(request: NextRequest) {
     // Get username from path (format: /{username}/dashboard/*)
     const username = pathname.split('/')[1];
     
-    // For now, we'll just log access and allow all requests through
     console.log(`Dashboard access: ${pathname} for user ${username}`);
     
-    // In the future, implement proper server-side authentication check
+    // Special handling for demouser for debugging
+    if (username === 'demouser') {
+      console.log('Demo user dashboard access detected');
+      // Make sure to verify the URL structure is correct
+      const pathParts = pathname.split('/');
+      console.log('Path parts:', pathParts);
+      
+      // Ensure the page exists by constructing a valid path
+      // No rewrite needed, just validate the request can be processed
+    }
+    
+    return NextResponse.next();
+  }
+  
+  // User site handling for new HTML theme system - route user site requests to our api/render endpoints
+  if (pathname.match(/^\/[^\/]+\/?$/) || pathname.match(/^\/[^\/]+\/(about|post\/[^\/]+)\/?$/)) {
+    // This is a user site page request (e.g., /username, /username/about, /username/post/slug)
+    const pathParts = pathname.split('/').filter(Boolean);
+    const username = pathParts[0];
+    
+    // Skip routing for system routes
+    if (['api', 'about', 'contact', 'discover', 'docs', 'signin', 'signup', 'terms', 'privacy'].includes(username)) {
+      return NextResponse.next();
+    }
+    
+    console.log(`User site request detected: ${pathname}`);
+    
+    let renderPath;
+    if (pathParts.length === 1) {
+      // Root user site, e.g., /username
+      renderPath = `/api/render/${username}`;
+    } else {
+      // Sub-path, e.g., /username/about or /username/post/slug
+      const subPath = pathParts.slice(1).join('/');
+      renderPath = `/api/render/${username}/${subPath}`;
+    }
+    
+    console.log(`Rewriting to HTML theme renderer: ${renderPath}`);
+    
+    // Rewrite to our theme renderer API
+    const newUrl = new URL(renderPath, request.url);
+    return NextResponse.rewrite(newUrl);
   }
   
   return NextResponse.next();
+  
+  } catch (error) {
+    console.error('Middleware error:', error);
+    return NextResponse.next();
+  }
 }
 
 // Run middleware on all routes, but exclude static files and API routes

@@ -50,6 +50,8 @@ function generateBreadcrumbs(pathname: string, username: string) {
       name = 'Edit Post';
     } else if (segment === 'settings') {
       name = 'Settings';
+    } else if (segment === 'site-customization') {
+      name = 'Site Customization';
     }
     
     breadcrumbs.push({
@@ -81,7 +83,14 @@ export default function DashboardLayout({
   // Hydration fix - only enable client-side features after mounting
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    
+    // Log for debugging
+    console.log('Dashboard layout mounted', { 
+      username, 
+      pathname,
+      params
+    });
+  }, [username, pathname, params]);
 
   // Handle sidebar collapse state
   const handleSidebarToggle = (collapsed: boolean) => {

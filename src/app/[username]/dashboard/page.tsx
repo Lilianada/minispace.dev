@@ -10,7 +10,9 @@ export const metadata: Metadata = {
   description: 'Manage your Minispace blog',
 };
 
-export default function Dashboard() {
+export default function Dashboard({ params }: { params: { username: string } }) {
+  console.log('Dashboard rendering with params:', params);
+  
   return (
     <div className="space-y-6">
       <WelcomeSection />
