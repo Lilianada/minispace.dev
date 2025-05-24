@@ -179,7 +179,7 @@ export default function ProfileClient() {
     <div className="container py-8">
       <h1 className="text-3xl font-bold mb-6">Profile</h1>
       
-      <ProfileHeader user={user} userData={userData} />
+      <ProfileHeader user={user} userData={userData} name={userData?.username || ''} />
       
       <Tabs defaultValue="account" className="mt-6">
         <TabsList className="mb-4">

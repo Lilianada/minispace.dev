@@ -1,6 +1,10 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import SiteCustomizationClient from './page.client';
+import { Suspense } from 'react';
+import LoadingScreen from '@/components/LoadingScreen';
+
+// Import the client wrapper instead of using dynamic directly in server component
+import SiteCustomizationClientWrapper from './client-wrapper';
 
 export const metadata: Metadata = {
   title: 'Site Customization | Minispace',
@@ -8,14 +12,14 @@ export const metadata: Metadata = {
 };
 
 interface SiteCustomizationPageProps {
-  params: {
+  params: Promise<{
     username: string;
-  };
+  }>;
 }
 
 export default async function SiteCustomizationPage({ params }: SiteCustomizationPageProps) {
   // Await the params object before destructuring
-  const resolvedParams = await Promise.resolve(params);
+  const resolvedParams = await params;
   const { username } = resolvedParams;
   
   if (!username) {
@@ -24,10 +28,6 @@ export default async function SiteCustomizationPage({ params }: SiteCustomizatio
   
   console.log(`Rendering site customization page for user: ${username}`);
   
-  // Special handling for demouser - makes debugging easier
-  if (username === 'demouser') {
-    console.log('Demo user detected in site customization page');
-  }
-  
-  return <SiteCustomizationClient username={username} />;
+  // Use the client wrapper component
+  return <SiteCustomizationClientWrapper username={username} />;
 }
