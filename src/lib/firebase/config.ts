@@ -16,24 +16,46 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase
+// Check if we're in a browser environment
+const isBrowser = typeof window !== "undefined";
+
+// Initialize Firebase only in browser environment
 let app: FirebaseApp;
 let auth: Auth;
 let db: Firestore;
 
-// Initialize Firebase if not already initialized
-if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  // Set longer persistence
-  if (typeof window !== "undefined") {
-    setPersistence(auth, browserLocalPersistence).catch(console.error);
+// Function to initialize Firebase - will be called immediately
+function initFirebase() {
+  try {
+    if (!getApps().length) {
+      app = initializeApp(firebaseConfig);
+    } else {
+      app = getApps()[0];
+    }
+    
+    auth = getAuth(app);
+    
+    // Set persistence only in browser
+    if (isBrowser) {
+      setPersistence(auth, browserLocalPersistence).catch(console.error);
+    }
+    
+    db = getFirestore(app);
+    
+    return { app, auth, db };
+  } catch (error) {
+    console.error("Firebase initialization error:", error);
+    // Create dummy objects that won't break code
+    return {
+      app: {} as FirebaseApp,
+      auth: {} as Auth,
+      db: {} as Firestore
+    };
   }
-  db = getFirestore(app);
-} else {
-  app = getApps()[0];
-  auth = getAuth(app);
-  db = getFirestore(app);
 }
 
-export { app, auth, db };
+// Initialize Firebase immediately
+const { app: firebaseApp, auth: firebaseAuth, db: firebaseDb } = initFirebase();
+
+// Export the initialized instances
+export { firebaseApp as app, firebaseAuth as auth, firebaseDb as db };

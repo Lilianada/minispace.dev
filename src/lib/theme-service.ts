@@ -12,61 +12,51 @@ import { renderTemplate, RenderContext } from './theme-renderer';
 // Base paths for themes
 const SRC_THEMES_PATH = path.join(process.cwd(), 'src', 'themes');
 const PUBLIC_THEMES_PATH = path.join(process.cwd(), 'public', 'themes');
+const ROOT_THEMES_PATH = path.join(process.cwd(), 'themes');
 
 /**
  * Theme manifest interface
  */
 export interface ThemeManifest {
-  id: string;
+  id?: string;
   name: string;
   description: string;
   version: string;
   author: string;
-  thumbnail: string;
+  thumbnail?: string;
   templates: {
     layout: string;
-    pages: {
-      [key: string]: string;
-    };
-  };
-  styles: {
-    main: string;
+    home: string;
+    about: string;
+    posts: string;
+    post: string;
+    [key: string]: string;
   };
   customization: {
-    colors: ThemeColorOption[];
-    fonts: ThemeFontOption[];
-    toggles: ThemeToggleOption[];
+    colors: Record<string, ThemeColorOption>;
+    fonts: Record<string, ThemeFontOption>;
+    options: Record<string, ThemeToggleOption>;
   };
-  defaultContent: any;
+  defaultContent?: any;
 }
 
 export interface ThemeColorOption {
-  id: string;
   label: string;
+  value: string;
   variable: string;
-  default: string;
-  darkMode?: string;
 }
 
 export interface ThemeFontOption {
-  id: string;
   label: string;
+  value: string;
   variable: string;
-  default: string;
-  options: {
-    id: string;
-    label: string;
-    value: string;
-    import?: string;
-  }[];
 }
 
 export interface ThemeToggleOption {
-  id: string;
   label: string;
-  description: string;
-  selector: string;
-  className: string;
+  type: string;
+  value: boolean | string | number;
+  options?: {id: string, label: string, value: string}[];
 }
 
 /**
@@ -74,31 +64,33 @@ export interface ThemeToggleOption {
  */
 export async function getAvailableThemes(): Promise<ThemeManifest[]> {
   try {
-    const themesFolders = fs.readdirSync(SRC_THEMES_PATH);
     const themes: ThemeManifest[] = [];
+    
+    // Check root themes folder for JSON manifests
+    if (fs.existsSync(ROOT_THEMES_PATH)) {
+      const rootThemesFolders = fs.readdirSync(ROOT_THEMES_PATH);
+      
+      for (const folder of rootThemesFolders) {
+        // Skip if not a directory
+        if (!fs.statSync(path.join(ROOT_THEMES_PATH, folder)).isDirectory()) {
+          continue;
+        }
 
-    for (const folder of themesFolders) {
-      // Skip base folder and non-directories
-      if (folder === 'base' || !fs.statSync(path.join(SRC_THEMES_PATH, folder)).isDirectory()) {
-        continue;
-      }
-
-      // Check if manifest exists
-      const manifestPath = path.join(SRC_THEMES_PATH, folder, 'manifest.ts');
-      if (fs.existsSync(manifestPath)) {
-        try {
-          // Import the manifest
-          const manifestModule = await import(`../themes/${folder}/manifest.ts`);
-          const manifest = manifestModule.default;
-          
-          // Add to themes list
-          themes.push(manifest);
-        } catch (error) {
-          console.error(`Error loading theme manifest for ${folder}:`, error);
+        // Check if manifest exists as JSON
+        const manifestPath = path.join(ROOT_THEMES_PATH, folder, 'manifest.json');
+        if (fs.existsSync(manifestPath)) {
+          try {
+            // Load the JSON manifest
+            const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+            manifest.id = folder;
+            themes.push(manifest);
+          } catch (error) {
+            console.error(`Error loading theme manifest for ${folder}:`, error);
+          }
         }
       }
     }
-
+    
     return themes;
   } catch (error) {
     console.error('Error loading themes:', error);
@@ -130,13 +122,19 @@ export function loadThemeTemplate(themeId: string, templatePath: string): string
       return fs.readFileSync(srcPath, 'utf-8');
     }
     
-    // If not found in src, try public/themes
+    // Then try root themes folder
+    const rootPath = path.join(ROOT_THEMES_PATH, themeId, templatePath);
+    if (fs.existsSync(rootPath)) {
+      return fs.readFileSync(rootPath, 'utf-8');
+    }
+    
+    // If not found in src or root, try public/themes
     const publicPath = path.join(PUBLIC_THEMES_PATH, themeId, templatePath);
     if (fs.existsSync(publicPath)) {
       return fs.readFileSync(publicPath, 'utf-8');
     }
     
-    throw new Error(`Template file not found in either src or public paths`);
+    throw new Error(`Template file not found in any theme paths`);
   } catch (error) {
     console.error(`Error loading template ${templatePath} for theme ${themeId}:`, error);
     return '<!-- Error loading template -->';
@@ -199,7 +197,7 @@ export async function renderThemePage(
     }
     
     // Check if the page template exists
-    const pageTemplatePath = theme.templates.pages[page];
+    const pageTemplatePath = theme.templates[page];
     if (!pageTemplatePath) {
       throw new Error(`Page template ${page} not found in theme ${themeId}`);
     }
