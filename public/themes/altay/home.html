@@ -1,0 +1,35 @@
+<section class="about-hero about-hero-noimg">
+  <div>
+    <h1 class="about-title">{{site.title}}</h1>
+    <p class="about-desc">{{site.description}}</p>
+    {{#if site.socialLinks}}
+    <div class="about-socials">
+      Find me on {{site.socialLinks}}
+    </div>
+    {{/if}}
+  </div>
+</section>
+
+<section id="writing" class="writing-section">
+  <h2 class="writing-title">Writing</h2>
+  <div class="writings-list">
+    {{#if posts.length}}
+    <ul>
+      {{#each posts}}
+      <li>
+        <a href="/post/{{slug}}">{{title}}</a>
+        <span class="writing-meta">{{formatDate publishedAt}}</span>
+        {{#if excerpt}}
+        <span class="writing-desc">{{excerpt}}</span>
+        {{/if}}
+      </li>
+      {{/each}}
+    </ul>
+    {{else}}
+    <p>No posts yet. Check back soon!</p>
+    {{/if}}
+    <a href="/posts" class="view-more-btn">View all posts</a>
+  </div>
+</section>
+
+<hr class="divider" />
