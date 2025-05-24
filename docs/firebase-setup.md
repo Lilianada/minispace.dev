@@ -4,7 +4,7 @@ This guide explains how to set up and configure Firebase for the Minispace proje
 
 ## Prerequisites
 
-- Node.js 16+ and npm/yarn
+- Node.js 18+ and npm
 - Firebase account
 
 ## Firebase Project Setup
@@ -13,6 +13,14 @@ This guide explains how to set up and configure Firebase for the Minispace proje
    - Go to the [Firebase Console](https://console.firebase.google.com/)
    - Click "Add project" and follow the setup wizard
    - Enable Google Analytics if desired
+
+## Project Configuration
+
+There are two parts to Firebase configuration:
+1. Client-side Firebase SDK (for browser)
+2. Firebase Admin SDK (for server-side rendering)
+
+For the admin SDK setup, see [Firebase Admin Setup Guide](firebase-admin-setup.md)
 
 2. **Set up Firebase Authentication**
    - In your Firebase project, go to "Authentication"

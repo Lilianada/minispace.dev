@@ -1,0 +1,11 @@
+<!-- This would normally be an image file, but for demonstration purposes, I'm creating a simple SVG placeholder -->
+<svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="400" fill="#111110"/>
+  <rect x="100" y="80" width="400" height="40" fill="#ffd900" rx="4"/>
+  <rect x="100" y="140" width="400" height="20" fill="#e4e4e7" opacity="0.8" rx="4"/>
+  <rect x="100" y="170" width="350" height="20" fill="#e4e4e7" opacity="0.8" rx="4"/>
+  <rect x="100" y="230" width="250" height="20" fill="#e4e4e7" opacity="0.8" rx="4"/>
+  <rect x="100" y="260" width="180" height="20" fill="#b1b1b3" opacity="0.6" rx="4"/>
+  <rect x="100" y="300" width="300" height="20" fill="#e4e4e7" opacity="0.8" rx="4"/>
+  <rect x="100" y="330" width="220" height="20" fill="#b1b1b3" opacity="0.6" rx="4"/>
+</svg>

@@ -1,0 +1,21 @@
+<h1 class="writingall-title">Writing</h1>
+
+<div class="writingall-list">
+  {{#if posts.length}}
+  <ul>
+    {{#each posts}}
+    <li>
+      <a href="/post/{{slug}}">{{title}}</a>
+      <span class="writingall-meta">{{formatDate publishedAt}}</span>
+      {{#if excerpt}}
+      <span class="writingall-desc">{{excerpt}}</span>
+      {{/if}}
+    </li>
+    {{/each}}
+  </ul>
+  {{else}}
+  <p>No posts yet. Check back soon!</p>
+  {{/if}}
+</div>
+
+<hr class="divider" />

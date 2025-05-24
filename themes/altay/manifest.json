@@ -1,0 +1,57 @@
+{
+  "name": "altay",
+  "version": "1.0.0",
+  "author": "Minispace Team",
+  "description": "A clean, minimal dark theme with yellow accents",
+  "thumbnail": "assets/thumbnail.svg",
+  "templates": {
+    "layout": "layout.html",
+    "home": "home.html",
+    "about": "about.html",
+    "posts": "posts.html",
+    "post": "post.html"
+  },
+  "customization": {
+    "colors": {
+      "background": {
+        "label": "Background Color",
+        "value": "#111110",
+        "variable": "--bg"
+      },
+      "text": {
+        "label": "Text Color",
+        "value": "#e4e4e7",
+        "variable": "--text"
+      },
+      "muted": {
+        "label": "Muted Text Color",
+        "value": "#b1b1b3",
+        "variable": "--muted"
+      },
+      "accent": {
+        "label": "Accent Color",
+        "value": "#ffd900",
+        "variable": "--accent"
+      },
+      "linkHover": {
+        "label": "Link Hover Color",
+        "value": "#fffbe7",
+        "variable": "--link-hover"
+      }
+    },
+    "fonts": {
+      "main": {
+        "label": "Main Font",
+        "value": "'Inter', system-ui, sans-serif",
+        "variable": "--font"
+      }
+    },
+    "options": {
+      "enableAnimations": {
+        "label": "Enable Animations",
+        "type": "boolean",
+        "value": true
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{#if pageTitle}}{{pageTitle}} – {{/if}}{{site.title}}</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="{{site.description}}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/themes/altay/theme.css">
+  {{{userCSS}}}
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-content">
+      <span class="site-logo">{{site.title}}</span>
+      <nav>
+        {{{navigation}}}
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-layout">
+    {{{content}}}
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-content">
+      <span class="footer-email">{{site.email}}</span>
+      <span class="footer-right">Built with Minispace</span>
+    </div>
+  </footer>
+</body>
+</html>

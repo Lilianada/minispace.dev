@@ -59,6 +59,44 @@ With Minispace, you can carve out your own little corner of the web.
 - **Icons:** `lucide-react`
 - **Authentication:** Firebase Auth + Firebase Admin SDK
 - **Database:** Firebase Firestore
+- **Themes:** Static HTML/CSS with customizable templates
+- **Rendering:** Server-side theme rendering with zero client JS 
+
+## Development Setup
+
+### Firebase Configuration
+
+1. Create a Firebase project with Authentication and Firestore
+2. Add your Firebase credentials to `.env.local`:
+
+```
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+```
+
+3. Set up Firebase Admin SDK (for server-side rendering):
+   - Follow instructions in [docs/firebase-admin-setup.md](docs/firebase-admin-setup.md)
+   - Run `node scripts/validate-firebase-admin.js` to verify your setup
+
+### Getting Started
+
+```bash
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
+```
 - **Styling:** Inline CSS for fast loading
 - **Subdomain Routing:** Next.js middleware
 - **Hosting:** Vercel
