@@ -1,33 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>{{#if pageTitle}}{{pageTitle}} – {{/if}}{{site.title}}</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="{{site.description}}">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/themes/altay/theme.css">
-  {{{userCSS}}}
-</head>
-<body>
-  <header class="site-header">
-    <div class="header-content">
-      <span class="site-logo">{{site.title}}</span>
-      <nav>
-        {{{navigation}}}
-      </nav>
-    </div>
-  </header>
+  <head>
+    <meta charset="UTF-8" />
+    <title>{{#if pageTitle}}{{pageTitle}} – {{/if}}{{site.title}}</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="description" content="{{site.description}}" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/themes/altay/theme.css" />
+    {{{userCSS}}}
+    <style>
+      /* Hide nav-menu by default on mobile */
+      @media (max-width: 700px) {
+        .nav-menu {
+          display: none;
+        }
+        .nav-menu.open {
+          display: flex !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="preview-container">
+      <header class="site-header">
+        <div class="header-content">
+          <!-- inside .header-content -->
+          <span class="site-logo">{{site.title}}</span>
+          <button
+            class="mobile-menu-toggle"
+            aria-label="Open navigation"
+            aria-expanded="false"
+            aria-controls="main-nav"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+          <nav id="main-nav" class="nav-menu">{{{navigation}}}</nav>
+          <!-- end of .header-content -->
+        </div>
+      </header>
 
-  <main class="main-layout">
-    {{{content}}}
-  </main>
+      <main class="main-layout">{{{content}}}</main>
 
-  <footer class="site-footer">
-    <div class="footer-content">
-      <span class="footer-email">{{site.email}}</span>
-      <span class="footer-right">Built with Minispace</span>
+      <footer class="site-footer">
+        <div class="footer-content">
+          <span class="footer-email">{{site.email}}</span>
+          <span class="footer-right">Built with Minispace</span>
+        </div>
+      </footer>
     </div>
-  </footer>
-</body>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const menuBtn = document.querySelector(".mobile-menu-toggle");
+        const navMenu = document.querySelector(".nav-menu");
+        if (menuBtn && navMenu) {
+          menuBtn.addEventListener("click", function () {
+            navMenu.classList.toggle("open");
+            menuBtn.classList.toggle("active");
+            const expanded = menuBtn.getAttribute("aria-expanded") === "true";
+            menuBtn.setAttribute("aria-expanded", !expanded);
+          });
+          // Optional: close menu when clicking a nav link (for SPA-like experience)
+          navMenu.addEventListener("click", function (e) {
+            if (e.target.classList.contains("nav-link")) {
+              navMenu.classList.remove("open");
+              menuBtn.classList.remove("active");
+              menuBtn.setAttribute("aria-expanded", false);
+            }
+          });
+        }
+      });
+    </script>
+  </body>
 </html>

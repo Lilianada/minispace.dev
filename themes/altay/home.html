@@ -4,7 +4,7 @@
     <p class="about-desc">{{site.description}}</p>
     {{#if site.socialLinks}}
     <div class="about-socials">
-      Find me on {{site.socialLinks}}
+      Find me on {{{site.socialLinks}}}
     </div>
     {{/if}}
   </div>
@@ -17,7 +17,7 @@
     <ul>
       {{#each posts}}
       <li>
-        <a href="/post/{{slug}}">{{title}}</a>
+        <a href="{{#if @root.site.isSubdomain}}/post/{{slug}}{{else}}/{{@root.site.username}}/post/{{slug}}{{/if}}">{{title}}</a>
         <span class="writing-meta">{{formatDate publishedAt}}</span>
         {{#if excerpt}}
         <span class="writing-desc">{{excerpt}}</span>
@@ -28,7 +28,7 @@
     {{else}}
     <p>No posts yet. Check back soon!</p>
     {{/if}}
-    <a href="/posts" class="view-more-btn">View all posts</a>
+    <a href="{{#if site.isSubdomain}}/posts{{else}}/{{site.username}}/posts{{/if}}" class="view-more-btn">View all posts</a>
   </div>
 </section>
 
