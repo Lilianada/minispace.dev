@@ -52,6 +52,8 @@ function generateBreadcrumbs(pathname: string, username: string) {
       name = 'Settings';
     } else if (segment === 'site-customization') {
       name = 'Site Customization';
+    } else if (segment === 'analytics') {
+      name = 'Analytics';
     }
     
     breadcrumbs.push({

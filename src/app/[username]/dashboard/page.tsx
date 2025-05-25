@@ -10,8 +10,9 @@ export const metadata: Metadata = {
   description: 'Manage your Minispace blog',
 };
 
-export default function Dashboard({ params }: { params: { username: string } }) {
-  console.log('Dashboard rendering with params:', params);
+export default async function Dashboard({ params }: { params: Promise<{ username: string }> }) {
+  const resolvedParams = await params;
+  console.log('Dashboard rendering with params:', resolvedParams);
   
   return (
     <div className="space-y-6">

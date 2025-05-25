@@ -32,7 +32,7 @@ export default function UserSiteClient() {
         const userId = usernameDoc.data().userId;
         
         // Fetch the actual user data
-        const userRef = doc(db, 'users', userId);
+        const userRef = doc(db, 'Users', userId);
         const userDoc = await getDoc(userRef);
 
         if (!userDoc.exists()) {

@@ -1,7 +1,9 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
+import { headers } from 'next/headers';
 import { adminDb, isAdminAvailable } from '@/lib/firebase/admin';
 import { renderThemePage } from '@/lib/theme-service';
+import { createNavigationContext, generateNavigationHtml } from '@/lib/navigation-utils';
 import fs from 'fs';
 import path from 'path';
 
@@ -11,6 +13,12 @@ interface UserProfilePageProps {
 
 export default async function UserProfilePage({ params }: UserProfilePageProps) {
   const { username } = await params;
+  const headersList = await headers();
+  
+  // Create navigation context based on request headers
+  const navigationContext = createNavigationContext(username, {
+    host: headersList.get('host') || undefined
+  }, `/`);
   
   // Check if Firebase Admin is available
   if (!isAdminAvailable()) {
@@ -33,7 +41,9 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
         title: username,
         description: `Welcome to ${username}'s personal site`,
         email: `${username}@example.com`,
-        socialLinks: 'Twitter, GitHub'
+        socialLinks: 'Twitter, GitHub',
+        username: username,
+        isSubdomain: navigationContext.isSubdomain
       },
       posts: [
         {
@@ -51,16 +61,12 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
           content: 'The Altay theme is minimalist and clean.'
         }
       ],
-      navigation: `
-        <a href="/" class="nav-link active">Home</a>
-        <a href="/posts" class="nav-link">Writing</a>
-        <a href="/about" class="nav-link">About</a>
-      `,
+      navigationContext,
       currentYear: new Date().getFullYear()
     };
     
     try {
-      // Render the theme with demo content
+      // Render the theme with demo content and navigation context
       const htmlContent = await renderThemePage('altay', 'home', demoContext);
       
       // Load theme CSS
@@ -163,6 +169,9 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
     });
     
     // Prepare context for theme rendering
+    const navigationContext = createNavigationContext(username, {
+      host: headersList.get('host') || undefined
+    }, '/');
     const context = {
       site: {
         title: userData?.name || username,
@@ -177,11 +186,7 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
         publishedAt: post.publishedAt,
         content: post.content
       })),
-      navigation: `
-        <a href="/" class="nav-link active">Home</a>
-        <a href="/posts" class="nav-link">Writing</a>
-        <a href="/about" class="nav-link">About</a>
-      `,
+      navigation: generateNavigationHtml(navigationContext),
       currentYear: new Date().getFullYear()
     };
     

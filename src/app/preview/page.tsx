@@ -32,7 +32,7 @@ export default function SubdomainPreviewPage() {
         
         // Find the user with this subdomain
         const userQuery = query(
-          collection(db, 'users'),
+          collection(db, 'Users'),
           where('username', '==', subdomain)
         );
         
@@ -50,7 +50,7 @@ export default function SubdomainPreviewPage() {
         
         // Get the user's theme settings
         const themeSettingsQuery = query(
-          collection(db, 'users', userDoc.id, 'userSettings')
+          collection(db, 'Users', userDoc.id, 'userSettings')
         );
         
         const themeSnapshot = await getDocs(themeSettingsQuery);
@@ -140,8 +140,9 @@ export default function SubdomainPreviewPage() {
         {themeData && themeData.themeId ? (
           <ThemeRenderer
             themeId={themeData.themeId}
-            pageType="home"
-            userData={userData}
+            pageName="home"
+            html=''
+            css=''
           />
         ) : (
           <div className="container py-10">

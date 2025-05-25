@@ -160,7 +160,6 @@ export default function SettingsPage() {
     { name: 'Account', href: getSettingsLink(''), current: pathname.endsWith('/settings') },
     { name: 'Domain', href: getSettingsLink('/domain'), current: pathname.includes('/settings/domain') },
     { name: 'Storage', href: getSettingsLink('/storage'), current: pathname.includes('/settings/storage') },
-    { name: 'Appearance', href: getSettingsLink('/appearance'), current: pathname.includes('/settings/appearance') },
     { name: 'Integrations', href: getSettingsLink('/integrations'), current: pathname.includes('/settings/integrations') },
   ];
 
@@ -267,7 +266,6 @@ export default function SettingsPage() {
               </Tabs>
             )}
             
-            {/* Other settings pages will be rendered in their own routes */}
           </div>
         </div>
       </div>

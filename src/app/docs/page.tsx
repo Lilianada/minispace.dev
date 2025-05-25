@@ -10,6 +10,10 @@ import QuickStartSection from '@/components/docs/QuickStartSection';
 import DomainSetupSection from '@/components/docs/DomainSetupSection';
 import HostingOptionsSection from '@/components/docs/HostingOptionsSection';
 import GitHubPagesSection from '@/components/docs/GitHubPagesSection';
+import PostsSection from '@/components/docs/PostsSection';
+import ThemesSection from '@/components/docs/ThemesSection';
+import StorageSection from '@/components/docs/StorageSection'; 
+import SupportSection from '@/components/docs/SupportSection';
 import FAQSection from '@/components/docs/FAQSection';
 import Footer from '@/components/landing/footer';
 
@@ -47,7 +51,11 @@ export default function DocsPage() {
             <DomainSetupSection />
             <HostingOptionsSection />
             <GitHubPagesSection />
+            <PostsSection />
+            <ThemesSection />
+            <StorageSection />
             <FAQSection />
+            <SupportSection />
           </div>
         </div>
       </div>

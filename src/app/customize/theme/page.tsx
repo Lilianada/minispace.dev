@@ -176,26 +176,31 @@ export default function CustomizeThemePage() {
   // Save the customizations
   const handleSave = async () => {
     try {
-      const response = await fetch('/api/user/theme-settings', {
+      const { authFetch } = await import('@/lib/api-utils');
+      
+      const response = await authFetch('/api/user/theme-settings', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           themeId,
-          customizations
+          themeName: theme?.name,
+          themeCategory: 'personal',
+          settings: customizations
         })
       });
       
       if (!response.ok) {
-        throw new Error('Failed to save theme settings');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save theme settings');
       }
       
       // Redirect to dashboard or confirmation page
       router.push('/dashboard?saved=theme');
     } catch (error) {
       console.error('Error saving theme settings:', error);
-      // Show error notification
+      alert(`Error saving theme settings: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
   

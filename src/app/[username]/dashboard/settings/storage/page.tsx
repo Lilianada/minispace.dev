@@ -11,7 +11,8 @@ import { calculateStorageUsage, formatBytes, StorageUsageData } from '@/lib/stor
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-export default function StorageSettingsPage({ params }: { params: { username: string } }) {
+export default async function StorageSettingsPage({ params }: { params: Promise<{ username: string }> }) {
+  const resolvedParams = await params;
   const router = useRouter();
   const { user, userData, loading: authLoading } = useAuth();
   const [storageData, setStorageData] = useState<StorageUsageData | null>(null);
