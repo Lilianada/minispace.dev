@@ -17,23 +17,16 @@ export default function TrafficSources() {
   useEffect(() => {
     async function fetchAnalytics() {
       try {
-        // For now, use mock data - in production, this would be a real API call
-        // to your backend that processes Vercel Analytics data
-        // const response = await fetch('/api/analytics/traffic-sources');
-        // const data = await response.json();
+        // Fetch from the enhanced analytics API
+        const response = await fetch('/api/analytics');
         
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (response.ok) {
+          const data = await response.json();
+          setTrafficData(data.trafficSources || []);
+        } else {
+          throw new Error('Failed to fetch analytics data');
+        }
         
-        // Mock data
-        const mockData = [
-          { name: 'Search Engines', percentage: 45 },
-          { name: 'Social Media', percentage: 32 },
-          { name: 'Direct Links', percentage: 15 },
-          { name: 'Referrals', percentage: 8 }
-        ];
-        
-        setTrafficData(mockData);
         setIsLoading(false);
       } catch (err) {
         setError((err as Error).message || 'Failed to fetch analytics');

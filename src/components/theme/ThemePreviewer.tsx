@@ -23,7 +23,7 @@ interface ThemePreviewerProps {
 const DEFAULT_PREVIEW_DATA = {
   site: {
     title: 'Demo Site',
-    description: 'A site built with Minispace',
+    description: 'I’m a software engineer passionate about frontend infrastructure, monorepos, and developer experience. I started this blog to share things I’m learning and thinking about, and to have a small, personal place on the web that feels like home. I believe that writing is the best way to sharpen ideas and connect with others who care about building and tinkering',
     email: 'hello@example.com',
     username: 'demo',
     socialLinks: '<a href="#">Twitter</a> and <a href="#">GitHub</a>'
