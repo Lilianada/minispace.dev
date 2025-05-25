@@ -8,6 +8,7 @@
 import fs from 'fs';
 import path from 'path';
 import { renderTemplate, RenderContext } from './theme-renderer';
+import { NavigationContext, generateNavigationHtml, updateNavigationLinks } from './navigation-utils';
 
 // Base paths for themes
 const SRC_THEMES_PATH = path.join(process.cwd(), 'src', 'themes');
@@ -181,12 +182,12 @@ export function generateCustomizedCSS(
 }
 
 /**
- * Render a page using a theme
+ * Render a page using a theme with navigation context
  */
 export async function renderThemePage(
   themeId: string,
   page: string,
-  context: RenderContext,
+  context: RenderContext & { navigationContext?: NavigationContext },
   userCustomCSS?: string
 ): Promise<string> {
   try {
@@ -206,18 +207,35 @@ export async function renderThemePage(
     const layoutTemplate = loadThemeTemplate(themeId, theme.templates.layout);
     const pageTemplate = loadThemeTemplate(themeId, pageTemplatePath);
     
+    // Generate navigation HTML if navigation context is provided
+    let navigationHtml = context.navigation || '';
+    if (context.navigationContext) {
+      navigationHtml = generateNavigationHtml(context.navigationContext);
+    }
+    
     // Render the page content first
-    const pageContent = renderTemplate(pageTemplate, context);
+    const pageContent = renderTemplate(pageTemplate, {
+      ...context,
+      navigation: navigationHtml
+    });
     
     // Then render the full layout with the page content
     const fullContext = {
       ...context,
       content: pageContent,
+      navigation: navigationHtml,
       userCSS: userCustomCSS,
       currentYear: new Date().getFullYear(),
     };
     
-    return renderTemplate(layoutTemplate, fullContext);
+    let renderedHtml = renderTemplate(layoutTemplate, fullContext);
+    
+    // Post-process navigation links if navigation context is provided
+    if (context.navigationContext) {
+      renderedHtml = updateNavigationLinks(renderedHtml, context.navigationContext);
+    }
+    
+    return renderedHtml;
   } catch (error) {
     console.error(`Error rendering page ${page} with theme ${themeId}:`, error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';

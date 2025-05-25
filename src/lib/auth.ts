@@ -85,7 +85,7 @@ export const signInWithGoogle = async () => {
     const userCredential = await signInWithPopup(auth, googleProvider);
     
     // Check if user exists in Firestore, create if not
-    const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+    const userDoc = await getDoc(doc(db, 'Users', userCredential.user.uid));
     if (!userDoc.exists()) {
       await createUserDocument(userCredential.user);
     } else {
@@ -155,7 +155,7 @@ export const createUserDocument = async (user: User) => {
  */
 export const updateUserLastLogin = async (uid: string) => {
   try {
-    const userRef = doc(db, 'users', uid);
+    const userRef = doc(db, 'Users', uid);
     
     // Check if the document exists first
     const docSnap = await getDoc(userRef);

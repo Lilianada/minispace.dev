@@ -22,13 +22,13 @@ export function renderTemplate(template: string, context: RenderContext): string
   // For debugging
   const isDebug = process.env.DEBUG_TEMPLATES === 'true';
   
-  // Handle conditionals first
-  template = processConditionals(template, context);
-  
-  // Handle loops
+  // Handle loops first (loops will handle their own conditionals and variables)
   template = processLoops(template, context);
   
-  // Replace variables
+  // Handle remaining conditionals (those not inside loops)
+  template = processConditionals(template, context);
+  
+  // Replace remaining variables
   template = processVariables(template, context);
   
   if (isDebug) {
@@ -97,47 +97,71 @@ function processVariables(template: string, context: RenderContext): string {
   // First handle helper functions like {{formatDate date}}
   template = processHelpers(template, context);
   
+  // Handle triple braces for unescaped HTML first: {{{variable}}}
+  const tripleVariableRegex = /\{\{\{([^}]+?)\}\}\}/g;
+  template = template.replace(tripleVariableRegex, (_, path) => {
+    const value = getValueFromPath(path.trim(), context);
+    if (value === undefined || value === null) {
+      return '';
+    }
+    // Return unescaped HTML
+    return String(value);
+  });
+  
   // Then handle simple variables: {{variable}}
   const variableRegex = /\{\{([^#\/][^}]*?)\}\}/g;
   
   return template.replace(variableRegex, (_, path) => {
-    // Handle triple braces for unescaped HTML
-    const isUnescaped = path.startsWith('{') && path.endsWith('}');
-    if (isUnescaped) {
-      path = path.slice(1, -1).trim();
-    }
-    
     const value = getValueFromPath(path.trim(), context);
     
     if (value === undefined || value === null) {
       return '';
     }
     
-    // Return the value, escaped if needed
-    return isUnescaped ? String(value) : escapeHtml(String(value));
+    // Return escaped HTML
+    return escapeHtml(String(value));
   });
 }
 
 /**
- * Process helper functions like {{formatDate date}}
+ * Process helper functions like {{formatDate date}} or {{eq value1 value2}}
  */
 function processHelpers(template: string, context: RenderContext): string {
-  // Match {{helperName argument}} pattern
+  // Match {{helperName argument argument2...}} pattern
   const helperRegex = /\{\{(\w+)\s+([^}]+)\}\}/g;
   
-  return template.replace(helperRegex, (_, helperName, argPath) => {
+  return template.replace(helperRegex, (_, helperName, argsString) => {
     // Check if we have a helper with this name
     const helper = templateHelpers[helperName];
     if (!helper) {
-      return `{{${helperName} ${argPath}}}`;
+      return `{{${helperName} ${argsString}}}`;
     }
     
-    // Get the argument value
-    const argValue = getValueFromPath(argPath.trim(), context);
+    // Parse arguments - split by spaces but handle quoted strings
+    const args = argsString.trim().split(/\s+/);
     
-    // Call the helper with the argument
+    // Get the argument values
+    /**
+     * Parse helper argument strings into their corresponding values
+     * @param {string[]} args - Raw argument strings from the template
+     * @param {RenderContext} context - Current template context
+     * @returns {any[]} - Array of resolved argument values
+     */
+    const argValues: any[] = args.map((arg: string) => {
+      // Remove quotes if present
+      if ((arg.startsWith('"') && arg.endsWith('"')) || (arg.startsWith("'") && arg.endsWith("'"))) {
+      return arg.slice(1, -1);
+      }
+      return getValueFromPath(arg, context);
+    });
+    
+    // Call the helper with the arguments
     try {
-      return helper(argValue, context);
+      if (helperName === 'eq' && argValues.length >= 2) {
+        return helper(argValues[0], argValues[1]);
+      } else {
+        return helper(argValues[0], context);
+      }
     } catch (error) {
       console.error(`Error in template helper ${helperName}:`, error);
       return '';
@@ -222,5 +246,10 @@ const templateHelpers: Record<string, (value: any, context: RenderContext) => st
       console.error('Error formatting date:', error);
       return String(date);
     }
+  },
+  
+  // Check if two values are equal
+  eq: (value1: any, value2: any) => {
+    return String(value1) === String(value2) ? 'true' : '';
   },
 };
