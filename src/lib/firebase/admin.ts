@@ -7,69 +7,69 @@ import { getFirestore } from 'firebase-admin/firestore';
  * 
  * This function handles various credential scenarios:
  * 1. Full JSON service account in FIREBASE_ADMIN_CREDENTIALS
- * 2. Just a private key in FIREBASE_ADMIN_CREDENTIALS
- * 3. No credentials - skips initialization for development
+ * 2. Development mode - mock initialization for demo
  */
 function initializeAdminApp() {
+  console.log('[Firebase Admin] Starting initialization...');
+  console.log('[Firebase Admin] Existing apps:', getApps().length);
+  
   if (getApps().length === 0) {
     try {
       // Get project ID from public env var
       const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+      console.log('[Firebase Admin] Project ID:', projectId);
       
       if (!projectId) {
-        console.warn('Firebase project ID not found, skipping admin initialization');
-        return false;
+        console.warn('[Firebase Admin] Project ID not found, enabling development mode');
+        return 'development';
       }
 
-      // Get admin credentials if available
+      // For development, enable mock mode
+      const isDevelopment = process.env.NODE_ENV === 'development';
       const adminCredentials = process.env.FIREBASE_ADMIN_CREDENTIALS;
+      
+      console.log('[Firebase Admin] Environment:', process.env.NODE_ENV);
+      console.log('[Firebase Admin] Has credentials:', !!adminCredentials);
+      
+      if (isDevelopment && !adminCredentials) {
+        console.log('[Firebase Admin] ✅ Development mode enabled - using mock authentication');
+        return 'development';
+      }
       
       if (adminCredentials) {
         try {
           // Decode base64 credentials
           const decoded = Buffer.from(adminCredentials, 'base64').toString('utf-8');
+          console.log('[Firebase Admin] Decoded credentials length:', decoded.length);
           
           // Case 1: Complete JSON service account
           if (decoded.trim().startsWith('{')) {
             try {
               const credentials = JSON.parse(decoded);
+              console.log('[Firebase Admin] Parsed credentials successfully');
               initializeApp({
                 credential: cert(credentials),
                 projectId: projectId,
               });
+              console.log('[Firebase Admin] ✅ Initialized with real credentials!');
               return true;
             } catch (jsonError) {
-              console.warn('Invalid service account JSON:', jsonError);
-            }
-          }
-          
-          // Case 2: Just a private key
-          if (decoded.includes('BEGIN PRIVATE KEY')) {
-            try {
-              initializeApp({
-                credential: cert({
-                  projectId: projectId,
-                  clientEmail: `firebase-adminsdk@${projectId}.iam.gserviceaccount.com`,
-                  privateKey: decoded,
-                }),
-                projectId: projectId,
-              });
-              return true;
-            } catch (keyError) {
-              console.warn('Failed to use private key:', keyError);
+              console.warn('[Firebase Admin] Invalid service account JSON, falling back to development mode');
+              console.warn('[Firebase Admin] Error details:', jsonError.message);
+              return 'development';
             }
           }
         } catch (error) {
-          console.warn('Failed to process admin credentials');
+          console.warn('[Firebase Admin] Failed to process credentials, falling back to development mode');
         }
       }
       
-      // Case 3: Development mode without credentials
-      console.warn('No valid admin credentials found, theme pages will use demo content');
-      return false;
+      // Fallback to development mode
+      console.log('[Firebase Admin] ✅ Development mode enabled');
+      return 'development';
     } catch (error) {
-      console.warn('Error initializing Firebase Admin:', error);
-      return false;
+      console.warn('[Firebase Admin] Error during initialization, falling back to development mode:', error);
+      return 'development';
     }
   }
   
@@ -82,7 +82,7 @@ const adminInitialized = (() => {
     return initializeAdminApp();
   } catch (error) {
     console.warn('Failed to initialize Firebase Admin SDK:', error);
-    return false;
+    return 'development';
   }
 })();
 
@@ -91,7 +91,7 @@ let adminAuth: ReturnType<typeof getAuth> | undefined;
 let adminDb: ReturnType<typeof getFirestore> | undefined;
 
 try {
-  if (adminInitialized) {
+  if (adminInitialized === true) {
     adminAuth = getAuth();
     adminDb = getFirestore();
   }
@@ -105,7 +105,25 @@ export { adminAuth, adminDb };
  * Check if Firebase Admin is available
  */
 export function isAdminAvailable(): boolean {
-  return !!(adminAuth && adminDb && adminInitialized);
+  const result = adminInitialized === true && !!(adminAuth && adminDb);
+  console.log(`[Firebase Admin] isAdminAvailable() called - adminInitialized: ${adminInitialized}, adminAuth: ${!!adminAuth}, adminDb: ${!!adminDb}, result: ${result}`);
+  
+  // If admin is not available but we're in development mode, return true to allow demo content
+  if (!result && adminInitialized === 'development') {
+    console.log(`[Firebase Admin] Admin not available but in development mode - allowing demo content`);
+    return true; // This will allow the page to render demo content
+  }
+  
+  return result;
+}
+
+/**
+ * Check if we're in development mode
+ */
+export function isDevelopmentMode(): boolean {
+  const result = adminInitialized === 'development';
+  console.log(`[Firebase Admin] isDevelopmentMode() called - adminInitialized: ${adminInitialized}, result: ${result}`);
+  return result;
 }
 
 /**

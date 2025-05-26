@@ -1,0 +1,14 @@
+
+> minispace.dev@0.1.0 dev
+> next dev --turbopack
+
+ ⚠ Port 3000 is in use, using available port 3001 instead.
+   ▲ Next.js 15.3.2 (Turbopack)
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.1.4:3001
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+Slow filesystem detected. If /Users/lilian/Desktop/Projects/minispace.dev/.next is a network drive, consider moving it to a local folder. If you have an antivirus enabled, consider excluding your project directory.
+ ✓ Compiled middleware in 229ms
+ ✓ Ready in 1951ms

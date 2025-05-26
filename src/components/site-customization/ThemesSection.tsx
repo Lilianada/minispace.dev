@@ -18,7 +18,7 @@ export default function ThemesSection({ userSettings, updateSettings, params }: 
         <div className="p-4 border rounded-lg bg-blue-50">
           <h4 className="font-semibold mb-2">Current Theme</h4>
           <p className="text-sm text-gray-600 mb-3">
-            {userSettings?.theme || 'Simple'} theme is currently applied to your blog
+            {userSettings?.theme || 'Altay'} theme is currently applied to your blog
           </p>
           <div className="flex gap-2">
             <Button variant="outline" asChild>
@@ -27,7 +27,7 @@ export default function ThemesSection({ userSettings, updateSettings, params }: 
               </Link>
             </Button>
             <Button asChild>
-              <Link href={`/customize/theme?theme=${userSettings?.theme || 'simple'}`}>
+              <Link href={`/customize/theme?theme=${userSettings?.theme || 'altay'}`}>
                 Customize Current Theme
               </Link>
             </Button>

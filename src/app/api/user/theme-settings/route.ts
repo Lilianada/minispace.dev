@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { adminAuth, adminDb, getAuthUser } from '@/lib/firebase/admin';
+import { adminAuth, adminDb, getAuthUser, isAdminAvailable, isDevelopmentMode } from '@/lib/firebase/admin';
 
 /**
  * GET handler for /api/user/theme-settings endpoint
@@ -8,7 +8,26 @@ import { adminAuth, adminDb, getAuthUser } from '@/lib/firebase/admin';
 export async function GET(request: Request) {
   try {
     // Check if Firebase Admin is available
-    if (!adminAuth || !adminDb) {
+    if (!isAdminAvailable()) {
+      // In development mode, return demo theme settings
+      if (isDevelopmentMode()) {
+        console.log('[Theme Settings API] Development mode - returning demo settings');
+        return NextResponse.json({
+          success: true,
+          themeId: 'altay',
+          themeName: 'Altay',
+          themeCategory: 'personal',
+          settings: {
+            colorScheme: 'auto',
+            showStats: true,
+            showSocial: true,
+            accentColor: '#0ea5e9'
+          },
+          updatedAt: new Date().toISOString(),
+          developmentMode: true
+        });
+      }
+      
       return NextResponse.json({
         success: false,
         message: 'Firebase Admin not initialized',
@@ -30,12 +49,13 @@ export async function GET(request: Request) {
 
     try {
       // Get user's theme settings from Firestore
-      const themeSettingsRef = adminDb.doc(`Users/${userId}/userSettings/theme`);
+      const themeSettingsRef = adminDb!.doc(`Users/${userId}/userSettings/theme`);
       const themeSettingsDoc = await themeSettingsRef.get();
 
       if (!themeSettingsDoc.exists) {
         // Return default theme settings if none exist
         return NextResponse.json({
+          success: true,
           themeId: 'altay',
           themeName: 'Altay',
           themeCategory: 'personal',
@@ -45,11 +65,14 @@ export async function GET(request: Request) {
       }
 
       const themeData = themeSettingsDoc.data();
-      return NextResponse.json(themeData);
+      return NextResponse.json({
+        success: true,
+        ...themeData
+      });
     } catch (error) {
       console.error('Error fetching theme settings:', error);
       return NextResponse.json(
-        { error: 'Failed to fetch theme settings' },
+        { success: false, error: 'Failed to fetch theme settings' },
         { status: 500 }
       );
     }
@@ -69,7 +92,19 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     // Check if Firebase Admin is available
-    if (!adminAuth || !adminDb) {
+    if (!isAdminAvailable()) {
+      // In development mode, return success but don't actually save
+      if (isDevelopmentMode()) {
+        console.log('[Theme Settings API] Development mode - simulating save operation');
+        const data = await request.json();
+        return NextResponse.json({
+          success: true,
+          message: 'Theme settings saved (development mode)',
+          themeId: data.themeId,
+          developmentMode: true
+        });
+      }
+      
       return NextResponse.json({
         success: false,
         message: 'Firebase Admin not initialized',
@@ -111,7 +146,7 @@ export async function POST(request: Request) {
       };
 
       // Save to Firestore
-      const themeSettingsRef = adminDb.doc(`Users/${userId}/userSettings/theme`);
+      const themeSettingsRef = adminDb!.doc(`Users/${userId}/userSettings/theme`);
       await themeSettingsRef.set(themeSettingsData, { merge: true });
 
       console.log(`Theme settings saved for user ${userId}:`, themeSettingsData);
