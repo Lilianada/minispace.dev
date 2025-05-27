@@ -145,6 +145,7 @@ npm start
 
 ## Documentation
 - [Subdomain Routing Guide](./docs/subdomain-routing-guide.md)
+- [Dynamic Navigation Guide](./docs/dynamic-navigation-guide.md)
 - [Firebase Admin Setup](./docs/firebase-admin-setup.md)
 - [Theming Guide](./docs/theming.md)
 
