@@ -43,7 +43,11 @@ export function middleware(request: NextRequest) {
   // Check if this is a subdomain request
   const isSubdomain = hostname !== currentDomain && 
                      hostname !== `www.${currentDomain}` && 
-                     !hostname.includes('vercel.app');
+                     !hostname.includes('vercel.app') &&
+                     hostname !== 'localhost' &&
+                     hostname !== 'localhost:3000';
+                     
+  console.log(`[Middleware] Is subdomain check: ${hostname}, result: ${isSubdomain}`);
   
   if (isSubdomain) {
     let username = '';

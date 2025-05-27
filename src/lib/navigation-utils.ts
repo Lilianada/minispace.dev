@@ -64,8 +64,15 @@ export function generatePostLink(slug: string, context: NavigationContext): stri
  * Create navigation context from request headers or pathname
  */
 export function createNavigationContext(username: string, headers?: { host?: string }, pathname?: string): NavigationContext {
-  // Determine if this is subdomain routing
-  const isSubdomain = headers?.host?.includes(`${username}.`) || false;
+  // Get the host from headers
+  const host = headers?.host || '';
+  
+  // More robust subdomain detection
+  const isSubdomain = host.startsWith(`${username}.`) || 
+                      host.includes(`${username}.localhost`) ||
+                      host.includes(`${username}.minispace.dev`);
+  
+  console.log(`[Navigation Utils] Creating context for ${username}, host: ${host}, isSubdomain: ${isSubdomain}`);
   
   // Determine current page from pathname
   let currentPage = 'home';
@@ -89,15 +96,23 @@ export function createNavigationContext(username: string, headers?: { host?: str
 export function updateNavigationLinks(html: string, context: NavigationContext): string {
   const { username, isSubdomain } = context;
   
+  console.log(`[Navigation Utils] Updating links for ${username}, isSubdomain: ${isSubdomain}`);
+  
   if (isSubdomain) {
-    // For subdomain routing, links are already correct (relative)
-    return html;
+    // For subdomain routing, we need to transform any username-prefixed links to relative links
+    // This ensures that links like /username/posts become /posts on the subdomain
+    return html
+      .replace(new RegExp(`href="/${username}/posts"`, 'g'), `href="/posts"`)
+      .replace(new RegExp(`href="/${username}/about"`, 'g'), `href="/about"`)
+      .replace(new RegExp(`href="/${username}/post/`, 'g'), `href="/post/`)
+      .replace(new RegExp(`href="/${username}"`, 'g'), `href="/"`);
   }
 
   // For path-based routing, replace relative links with username-prefixed ones
   return html
-    .replace(/href="\/posts"/g, `href="/${username}/posts"`)
-    .replace(/href="\/about"/g, `href="/${username}/about"`)
+    .replace(/href="\/posts"(?!\/)/g, `href="/${username}/posts"`)
+    .replace(/href="\/about"(?!\/)/g, `href="/${username}/about"`)
     .replace(/href="\/post\//g, `href="/${username}/post/`)
+    .replace(/href="\/"(?!\w)/g, `href="/${username}"`);
     .replace(/href="\/"/g, `href="/${username}"`);
 }

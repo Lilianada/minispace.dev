@@ -37,6 +37,16 @@
         }
       ],
       "destination": "/$subdomain/:path*"
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "(?<subdomain>.*)\\.minispace\\.dev"
+        }
+      ],
+      "destination": "/$subdomain"
     }
   ],
   "headers": [

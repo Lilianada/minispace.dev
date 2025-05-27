@@ -232,6 +232,7 @@ export async function renderThemePage(
     
     // Post-process navigation links if navigation context is provided
     if (context.navigationContext) {
+      console.log(`[Theme Service] Processing navigation for user: ${context.navigationContext.username}, isSubdomain: ${context.navigationContext.isSubdomain}`);
       renderedHtml = updateNavigationLinks(renderedHtml, context.navigationContext);
     }
     

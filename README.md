@@ -131,13 +131,22 @@ npm start
 
 ## Project Structure
 ```
-/app
-  /[username]/dashboard  → User dashboard pages
-  /subdomain/[username]  → Subdomain blog routes
-  /api                   → API routes
-/components              → UI Components
-/lib                     → Firebase, auth utilities
+/src
+  /app
+    /[username]          → Dynamic user routes
+    /[username]/dashboard → User dashboard pages
+    /api                 → API routes
+  /components            → UI Components
+  /lib                   → Utilities, theme service, middleware
+  /middleware.ts         → Handles subdomain routing
+/themes                  → Theme templates
+/docs                    → Documentation
 ```
+
+## Documentation
+- [Subdomain Routing Guide](./docs/subdomain-routing-guide.md)
+- [Firebase Admin Setup](./docs/firebase-admin-setup.md)
+- [Theming Guide](./docs/theming.md)
 
 ---
 

@@ -14,10 +14,13 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
   console.error('🚨🚨🚨 USER PROFILE PAGE EXECUTING - THIS SHOULD ALWAYS SHOW 🚨🚨🚨');
   const { username } = await params;
   const headersList = await headers();
+  const host = headersList.get('host') || '';
+  
+  console.log(`[User Profile] Processing request for ${username}, host: ${host}`);
   
   // Create navigation context based on request headers
   const navigationContext = createNavigationContext(username, {
-    host: headersList.get('host') || undefined
+    host
   }, `/`);
   
   // Check if Firebase Admin is available and handle development mode
