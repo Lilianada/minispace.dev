@@ -6,6 +6,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/lib/auth-context";
 import { ProgressBar } from "@/components/ui/progress-bar";
+// Import debug overlay component
+import { RoutingDebugOverlay } from "@/components/debug/RoutingDebugOverlay";
 
 export const metadata: Metadata = {
   title: "Minispace - Minimalist Blogging",
@@ -54,6 +56,7 @@ export default function RootLayout({
               {children}
               <Analytics />
               <Toaster />
+              <RoutingDebugOverlay />
             </TooltipProvider>
         </ToastProvider>
         </AuthProvider>

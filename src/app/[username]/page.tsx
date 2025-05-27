@@ -16,12 +16,30 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
   const headersList = await headers();
   const host = headersList.get('host') || '';
   
-  console.log(`[User Profile] Processing request for ${username}, host: ${host}`);
+  // Log all headers for debugging
+  const allHeaders: Record<string, string> = {};
+  headersList.forEach((value, key) => {
+    allHeaders[key] = value;
+  });
+  
+  console.log(`[SUBDOMAIN-DEBUG] User profile page executing:
+    - Username param: ${username}
+    - Host header: ${host}
+    - X-Minispace-Rewritten-From-Subdomain: ${headersList.get('x-minispace-rewritten-from-subdomain') || 'not set'}
+    - X-Minispace-Original-Host: ${headersList.get('x-minispace-original-host') || 'not set'}
+    - X-Minispace-Username: ${headersList.get('x-minispace-username') || 'not set'}
+    - All headers: ${JSON.stringify(allHeaders, null, 2)}`);
   
   // Create navigation context based on request headers
   const navigationContext = createNavigationContext(username, {
     host
   }, `/`);
+  
+  console.log(`[SUBDOMAIN-DEBUG] Navigation context created:
+    - Username: ${navigationContext.username}
+    - Is subdomain: ${navigationContext.isSubdomain}
+    - Current page: ${navigationContext.currentPage}`);
+    
   
   // Check if Firebase Admin is available and handle development mode
   console.log(`[User Profile] Admin DB available: ${!!adminDb}, Development mode: ${isDevelopmentMode()}`);
