@@ -145,9 +145,26 @@ npm start
 
 ## Documentation
 - [Subdomain Routing Guide](./docs/subdomain-routing-guide.md)
+- [Subdomain Debugging Guide](./docs/subdomain-debug-guide.md)
+- [Subdomain Routing Debug Guide](./docs/subdomain-routing-debug-guide.md) ← New comprehensive guide for troubleshooting 404 errors
 - [Dynamic Navigation Guide](./docs/dynamic-navigation-guide.md)
 - [Firebase Admin Setup](./docs/firebase-admin-setup.md)
 - [Theming Guide](./docs/theming.md)
+
+## Local Development 
+### Subdomain Testing
+For local subdomain testing (e.g., `username.localhost`), you need to set up your `/etc/hosts` file:
+
+```bash
+# Set up local subdomains automatically
+sudo ./scripts/setup-local-subdomains.sh [username]
+
+# Test subdomain resolution
+node scripts/test-subdomain-resolution.js [username]
+
+# Validate all routing
+node scripts/validate-routing.js [username]
+```
 
 ---
 

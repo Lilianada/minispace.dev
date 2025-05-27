@@ -9,6 +9,8 @@ import fs from 'fs';
 import path from 'path';
 import { renderTemplate, RenderContext } from './theme-renderer';
 import { NavigationContext, generateNavigationHtml, updateNavigationLinks } from './navigation-utils';
+import { debugThemeRendering } from './theme-debug';
+import { verifyNavigationLinks, fixIncorrectLinks } from './link-verification';
 
 // Base paths for themes
 const SRC_THEMES_PATH = path.join(process.cwd(), 'src', 'themes');
@@ -219,6 +221,15 @@ export async function renderThemePage(
       navigation: navigationHtml
     });
     
+    // Pre-render debugging
+    const debugContext = {
+      theme: themeId,
+      pageType: page,
+      navigationContext: context.navigationContext,
+      site: context.site
+    };
+    debugThemeRendering('pre-render', debugContext);
+    
     // Then render the full layout with the page content
     const fullContext = {
       ...context,
@@ -230,12 +241,55 @@ export async function renderThemePage(
     
     let renderedHtml = renderTemplate(layoutTemplate, fullContext);
     
+    // Post-render debugging
+    debugThemeRendering('post-render', debugContext, renderedHtml);
+    
     // Post-process navigation links if navigation context is provided
     if (context.navigationContext) {
-      console.log(`[Theme Service] Processing navigation for user: ${context.navigationContext.username}, isSubdomain: ${context.navigationContext.isSubdomain}`);
-      renderedHtml = updateNavigationLinks(renderedHtml, context.navigationContext);
+      console.log(`[SUBDOMAIN-DEBUG] Theme rendering details:
+        - Theme ID: ${themeId}
+        - Page type: ${page}
+        - Username: ${context.navigationContext.username}
+        - Is subdomain: ${context.navigationContext.isSubdomain}
+        - Current page: ${context.navigationContext.currentPage || 'home'}
+        - Template context keys: ${Object.keys(fullContext).join(', ')}`);
+      
+      try {
+        // Apply navigation link transformations
+        renderedHtml = updateNavigationLinks(renderedHtml, context.navigationContext);
+        
+        // Verify links are correctly formatted - catch any missed transformations
+        const linkVerification = verifyNavigationLinks(renderedHtml, context.navigationContext);
+        
+        if (linkVerification.incorrectLinks.length > 0) {
+          console.warn(`[SUBDOMAIN-DEBUG] Found ${linkVerification.incorrectLinks.length} incorrectly formatted links after transformation:`, 
+            linkVerification.incorrectLinks);
+          
+          // Apply additional fixes for incorrect links
+          renderedHtml = fixIncorrectLinks(renderedHtml, context.navigationContext, linkVerification);
+        }
+        
+        // Post-navigation update debugging
+        debugThemeRendering('post-navigation-update', debugContext, renderedHtml);
+      } catch (error) {
+        console.error(`[SUBDOMAIN-DEBUG] Error in navigation link processing:`, error);
+        // Continue with the rendering even if link processing fails
+      }
     }
     
+    // Add comments for debugging in HTML source
+    renderedHtml = `
+<!-- 
+MINISPACE DEBUG INFO:
+  Theme: ${themeId}
+  Page: ${page}
+  Username: ${context.navigationContext?.username || 'unknown'}
+  Is subdomain: ${context.navigationContext?.isSubdomain || false}
+  Timestamp: ${new Date().toISOString()}
+-->
+${renderedHtml}`;
+    
+    console.log(`[SUBDOMAIN-DEBUG] Final rendered HTML size: ${renderedHtml.length} bytes`);
     return renderedHtml;
   } catch (error) {
     console.error(`Error rendering page ${page} with theme ${themeId}:`, error);

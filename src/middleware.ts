@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { analyzeCurrentPath, detectIncorrectPaths } from './lib/path-analyzer';
 
 export function middleware(request: NextRequest) {
   const url = request.nextUrl;
@@ -7,15 +8,33 @@ export function middleware(request: NextRequest) {
   // Get hostname (e.g. username.minispace.dev, username.localhost:3000)
   const hostname = request.headers.get('host') || '';
   
-  // Improved logging
-  console.log(`Middleware processing request: ${hostname}${pathname}`);
+  // Detailed logging for subdomain debugging
+  console.log(`[SUBDOMAIN-DEBUG] *** Middleware processing request ***
+    - Full URL: ${request.url}
+    - Hostname: ${hostname}
+    - Pathname: ${pathname}
+    - Headers: ${JSON.stringify(Object.fromEntries(request.headers), null, 2)}`);
+  
   try {
+    // Use the path analyzer to get detailed information about the current path
+    const pathAnalysis = analyzeCurrentPath(request);
+    console.log(`[SUBDOMAIN-DEBUG] Path analysis:`, JSON.stringify(pathAnalysis, null, 2));
   
   // Define environment variables
   const isProd = process.env.NODE_ENV === 'production';
   const prodDomain = 'minispace.dev';
   const devDomain = 'localhost';
   const currentDomain = isProd ? prodDomain : devDomain;
+  
+  // Additional domains to check for development environments
+  const devDomains = ['localhost', '127.0.0.1']; // Support IP-based localhost 
+  const devDomainsWithPort = devDomains.map(d => `${d}:3000`);
+  
+  console.log(`[SUBDOMAIN-DEBUG] Environment:
+    - isProd: ${isProd}
+    - prodDomain: ${prodDomain}
+    - devDomains: ${devDomains.join(', ')}
+    - currentDomain: ${currentDomain}`);
   
   // Skip static assets and API routes
   if (
@@ -41,52 +60,75 @@ export function middleware(request: NextRequest) {
   }
   
   // Check if this is a subdomain request
-  const isSubdomain = hostname !== currentDomain && 
-                     hostname !== `www.${currentDomain}` && 
-                     !hostname.includes('vercel.app') &&
-                     hostname !== 'localhost' &&
-                     hostname !== 'localhost:3000';
+  const isMainDomain = hostname === currentDomain || 
+                      hostname === `www.${currentDomain}` || 
+                      hostname.includes('vercel.app') ||
+                      devDomains.includes(hostname) ||
+                      devDomainsWithPort.includes(hostname);
+  
+  const isSubdomain = !isMainDomain;
                      
   console.log(`[Middleware] Is subdomain check: ${hostname}, result: ${isSubdomain}`);
   
   if (isSubdomain) {
-    let username = '';
+    // Use the username extracted from path analysis
+    const username = pathAnalysis.detectedUsername;
     
-    // Extract username from the hostname
-    if (isProd) {
-      // Production: username.minispace.dev
-      username = hostname.replace(`.${prodDomain}`, '');
-    } else {
-      // Development: username.localhost:3000
-      // First remove port if it exists
-      const hostnameWithoutPort = hostname.split(':')[0];
-      
-      // Then extract username
-      if (hostnameWithoutPort.endsWith(`.${devDomain}`)) {
-        username = hostnameWithoutPort.replace(`.${devDomain}`, '');
-      } else if (hostnameWithoutPort !== devDomain) {
-        // Only treat as subdomain if it's not the main domain
-        username = hostnameWithoutPort;
-      } else {
-        // This is the main domain, no rewrite needed
-        return NextResponse.next();
-      }
+    // Safety check - if no username was detected, we can't proceed
+    if (!username) {
+      console.log(`[SUBDOMAIN-DEBUG] No username detected from subdomain, cannot proceed with rewrite`);
+      return NextResponse.next();
     }
     
     // Skip special subdomains
     if (['www', 'api', 'admin', 'app', 'dashboard'].includes(username)) {
+      console.log(`[SUBDOMAIN-DEBUG] Skipping special subdomain: ${username}`);
       return NextResponse.next();
     }
     
-    console.log(`Subdomain request detected: ${username}, pathname: ${pathname}`);
+    console.log(`[SUBDOMAIN-DEBUG] Subdomain request detected:
+      - Username: ${username}
+      - Original pathname: ${pathname}
+      - Is root path: ${pathname === '/'}`);
     
+    // Check if there's a path correction needed (e.g., subdomain with username in path)
+    const correctPath = detectIncorrectPaths(pathAnalysis);
+    
+    if (correctPath) {
+      console.log(`[SUBDOMAIN-DEBUG] Path correction needed:
+        - From: ${pathname}
+        - To: ${correctPath}`);
+      
+      // Redirect to the correct path instead of rewrite
+      // This ensures the URL in the browser is updated and avoids 404s on client-side navigation
+      const redirectUrl = new URL(correctPath, request.url);
+      return NextResponse.redirect(redirectUrl);
+    }
     
     // Rewrite the URL to the username route
     // e.g., username.minispace.dev/about -> minispace.dev/username/about
-    const newUrl = new URL(`/${username}${pathname === '/' ? '' : pathname}`, request.url);
-    console.log(`Rewriting to: ${newUrl.pathname}`);
+    const newPathname = `/${username}${pathname === '/' ? '' : pathname}`;
+    const newUrl = new URL(newPathname, request.url);
     
-    return NextResponse.rewrite(newUrl);
+    console.log(`[SUBDOMAIN-DEBUG] Rewriting URL:
+      - From: ${request.url}
+      - To pathname: ${newUrl.pathname}
+      - Full new URL: ${newUrl.toString()}`);
+    
+    // Add custom headers to track that this request was rewritten
+    const response = NextResponse.rewrite(newUrl);
+    response.headers.set('X-Minispace-Rewritten-From-Subdomain', 'true');
+    response.headers.set('X-Minispace-Original-Host', hostname);
+    response.headers.set('X-Minispace-Username', username);
+    
+    // Add detailed path analysis info for debugging
+    response.headers.set('X-Minispace-Path-Analysis', JSON.stringify({
+      originalPath: pathname,
+      normalizedPath: pathAnalysis.pathInfo.normalizedPath,
+      pageType: pathAnalysis.pathInfo.pageType
+    }));
+    
+    return response;
   }
   
   // Handle dashboard access control
