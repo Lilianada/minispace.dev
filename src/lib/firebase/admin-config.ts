@@ -1,0 +1,103 @@
+/**
+ * Firebase Admin Configuration
+ * 
+ * Handles environment detection and configuration for Firebase Admin SDK
+ */
+
+import { cert } from 'firebase-admin/app';
+import { headers } from 'next/headers';
+
+// Type definitions
+export type AdminInitStatus = boolean | 'development';
+
+export interface AdminConfig {
+  credential: any;
+  projectId: string;
+}
+
+/**
+ * Determine if application is running in development mode
+ */
+export function isDevEnvironment(): boolean {
+  return process.env.NODE_ENV === 'development';
+}
+
+/**
+ * Get the host from request headers
+ * Used for subdomain detection
+ */
+export async function getHostFromHeaders(): Promise<string> {
+  try {
+    // Use await for the headers() function, which returns a Promise
+    const headersList = await headers();
+    return headersList.get('host') || '';
+  } catch (error) {
+    // This can happen in client components or during build
+    console.warn('[Firebase Admin] Failed to get host from headers:', error);
+    return '';
+  }
+}
+
+/**
+ * Check if the current host is a subdomain
+ * @param host The hostname string from request headers
+ * @returns boolean indicating if this is a subdomain request
+ */
+export function isSubdomainHost(host: string): boolean {
+  if (!host) return false;
+  
+  // In production, check for minispace.dev subdomains
+  if (process.env.NODE_ENV === 'production') {
+    // Check if it's not the main domain but has minispace.dev
+    return !host.match(/^(www\.)?minispace\.dev$/) && host.includes('minispace.dev');
+  }
+  
+  // In development, check for localhost subdomains
+  // Support various localhost patterns (localhost, 127.0.0.1, etc)
+  const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1');
+  const hasSubdomain = host.split('.').length > (host.includes(':') ? 2 : 1);
+  
+  return isLocalhost && hasSubdomain;
+}
+
+/**
+ * Get Firebase Admin configuration
+ * Returns a status and configuration object
+ */
+export function getAdminConfig(): { status: AdminInitStatus; config: AdminConfig | null } {
+  try {
+    // Check for development mode first
+    const isDev = isDevEnvironment();
+    
+    // Get Firebase project ID
+    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+    if (!projectId) {
+      console.warn('[Firebase Admin] Missing NEXT_PUBLIC_FIREBASE_PROJECT_ID');
+      return { status: isDev ? 'development' : false, config: null };
+    }
+    
+    // Get Firebase admin credentials
+    const credentialsJson = process.env.FIREBASE_ADMIN_CREDENTIALS;
+    if (!credentialsJson) {
+      console.warn('[Firebase Admin] Missing FIREBASE_ADMIN_CREDENTIALS');
+      return { status: isDev ? 'development' : false, config: null };
+    }
+    
+    // Parse credentials
+    try {
+      const credentials = JSON.parse(credentialsJson);
+      const config: AdminConfig = {
+        credential: cert(credentials),
+        projectId
+      };
+      
+      return { status: true, config };
+    } catch (error) {
+      console.error('[Firebase Admin] Failed to parse credentials:', error);
+      return { status: isDev ? 'development' : false, config: null };
+    }
+  } catch (error) {
+    console.error('[Firebase Admin] Failed to get admin config:', error);
+    return { status: isDevEnvironment() ? 'development' : false, config: null };
+  }
+}

@@ -30,7 +30,7 @@ export interface PathAnalysis {
 /**
  * Creates a standardized analysis of the current path and routing context
  */
-export function analyzeCurrentPath(request?: NextRequest): PathAnalysis {
+export async function analyzeCurrentPath(request?: NextRequest): Promise<PathAnalysis> {
   // Get hostname from headers or request
   let hostname = '';
   let fullUrl = '';
@@ -39,7 +39,7 @@ export function analyzeCurrentPath(request?: NextRequest): PathAnalysis {
   // Server-side
   if (!request) {
     try {
-      const headersList = headers();
+      const headersList = await headers();
       hostname = headersList.get('host') || '';
       originalPath = headersList.get('x-pathname') || 
                    headersList.get('x-original-pathname') || 

@@ -1,7 +1,3 @@
-/**
- * Navigation utilities for generating proper links in themes
- * Handles both subdomain routing (username.minispace.dev) and path-based routing (/username)
- */
 
 export interface NavigationLink {
   href: string;
@@ -21,24 +17,53 @@ export interface NavigationContext {
  * 
  * @param context The navigation context (username, currentPage, isSubdomain)
  * @param customNavLinks Optional custom navigation links to override default ones
+ * @param userPages Optional array of user's custom pages to include in navigation
  */
-export function generateNavigationHtml(context: NavigationContext, customNavLinks?: NavigationLink[]): string {
+export function generateNavigationHtml(
+  context: NavigationContext, 
+  customNavLinks?: NavigationLink[], 
+  userPages?: {slug: string, title: string}[]
+): string {
   const { username, currentPage = 'home', isSubdomain = true } = context;
 
-  // Use custom nav links if provided, otherwise use defaults
-  const navLinks: NavigationLink[] = customNavLinks || [
+  // Start with default links
+  let navLinks: NavigationLink[] = customNavLinks || [
     { href: '/', label: 'Home' },
     { href: '/posts', label: 'Writing' },
     { href: '/about', label: 'About' }
   ];
+  
+  // Add any custom user pages to navigation
+  if (userPages && userPages.length > 0) {
+    // Filter out pages that might already be in default navigation
+    const existingSlugs = navLinks.map(link => 
+      link.href === '/' ? 'home' : link.href.replace(/^\//, '')
+    );
+    
+    const customPageLinks = userPages
+      .filter(page => !existingSlugs.includes(page.slug) && page.slug !== 'home')
+      .map(page => ({
+        href: `/${page.slug}`,
+        label: page.title || page.slug.charAt(0).toUpperCase() + page.slug.slice(1)
+      }));
+    
+    // Merge default and custom page links
+    navLinks = [...navLinks, ...customPageLinks];
+  }
 
   // Generate HTML for each link
   const navigationHtml = navLinks.map(link => {
     // More flexible active state detection
     const pageName = link.href === '/' ? 'home' : link.href.replace(/^\//, '').split('/')[0];
-    const isActive = currentPage === pageName || 
-                    (link.href === '/' && currentPage === 'home') ||
-                    (link.isActive === true);
+    
+    // Enhanced active state detection that works with custom pages
+    const linkPageName = pageName.toLowerCase();
+    const currentPageLower = currentPage.toLowerCase();
+    
+    const isActive = 
+      currentPageLower === linkPageName || 
+      (link.href === '/' && currentPageLower === 'home') ||
+      (link.isActive === true);
 
     // Build the actual href based on routing type
     const actualHref = isSubdomain ? link.href : `/${username}${link.href}`;
@@ -152,7 +177,7 @@ export function updateNavigationLinks(html: string, context: NavigationContext):
   // Extract and log all href links for debugging
   const hrefRegex = /href="([^"]*)"/g;
   const links = [];
-  const transformedLinks = [];
+  const transformedLinks: { original: string; transformed: string; }[] = [];
   let match;
   
   // Create a copy of the HTML that we'll modify
@@ -220,21 +245,9 @@ export function updateNavigationLinks(html: string, context: NavigationContext):
     return result;
   }
 
-  // For path-based routing: convert all relative links to username-prefixed links
-  // Need to handle different cases:
-  // 1. href="/" -> href="/username"
-  // 2. href="/page" -> href="/username/page"
-  // 3. But don't affect external links, anchors, etc.
-  
   console.log(`[SUBDOMAIN-DEBUG] Path-based mode - transforming relative links to username-prefixed links`);
   
-  const transformations = [];
-  
-  // Regular expression explanation:
-  // - Match href="/ followed by:
-  //   - Not a slash (avoids matching protocol like href="//example.com")
-  //   - Not a hash (avoids matching href="/#section")
-  //   - Not already prefixed with username
+  const transformations: { original: string; transformed: string; }[] = [];
   
   // Fix root links: href="/" -> href="/username"
   result = html.replace(/href="\/"(?!\w)/g, (match) => {
@@ -243,9 +256,6 @@ export function updateNavigationLinks(html: string, context: NavigationContext):
     transformations.push({ original: match, transformed });
     return transformed;
   });
-  
-  // Fix section links: href="/section" -> href="/username/section"
-  // But avoid double-applying to links that already have username
   result = result.replace(/href="\/([^\/"][^"]*)"(?!\w)/g, (match, section) => {
     // Skip if it's already prefixed with username or it's an external URL
     if (section.startsWith(username + '/') || section === username || section.includes('://')) {
@@ -265,8 +275,6 @@ export function updateNavigationLinks(html: string, context: NavigationContext):
     return transformed;
   });
   
-  // Additional fix for post links - ensure they're properly prefixed with username
-  // For path-based routing, post links should be /username/post/slug
   const postPattern = new RegExp(`href="\\/post\\/([^"]+)"`, 'g');
   result = result.replace(postPattern, (match, slug) => {
     const transformed = `href="/${username}/post/${slug}"`;
@@ -290,4 +298,41 @@ export function updateNavigationLinks(html: string, context: NavigationContext):
   result = result.replace(/href="\/+/g, 'href="/');
     
   return result;
+}
+
+/**
+ * Generate navigation links that include custom pages
+ * This is a convenience function that wraps the getUserCustomPages and generateNavigationHtml functions
+ * 
+ * @param context The navigation context
+ * @param customLinks Optional custom navigation links
+ * @param customPages Optional array of custom pages (if already fetched)
+ * @returns Promise resolving to HTML string of navigation links
+ */
+export async function generateNavigationWithCustomPages(
+  context: NavigationContext,
+  customLinks?: NavigationLink[],
+  customPages?: {slug: string, title: string}[]
+): Promise<string> {
+  try {
+    // Check if customPages is undefined
+    if (!customPages) {
+      try {
+        // Dynamic import to avoid circular dependencies
+        const { getUserCustomPages } = await import('./user-content-service');
+        if (getUserCustomPages) {
+          customPages = await getUserCustomPages(context.username);
+        }
+      } catch (error) {
+        console.error('[Navigation] Error importing getUserCustomPages:', error);
+      }
+    }
+    
+    // Generate the navigation HTML
+    return generateNavigationHtml(context, customLinks, customPages);
+  } catch (error) {
+    console.error('[Navigation] Error generating navigation with custom pages:', error);
+    // Fallback to basic navigation without custom pages
+    return generateNavigationHtml(context, customLinks);
+  }
 }

@@ -1,187 +1,26 @@
 /**
  * Theme Service
  * 
- * Manages static HTML/CSS themes and provides utilities for
- * rendering themes and handling user customizations
+ * Main entry point for theme functionality
  */
 
-import fs from 'fs';
-import path from 'path';
-import { renderTemplate, RenderContext } from './theme-renderer';
-import { NavigationContext, generateNavigationHtml, updateNavigationLinks } from './navigation-utils';
-import { debugThemeRendering } from './theme-debug';
-import { verifyNavigationLinks, fixIncorrectLinks } from './link-verification';
+import type { RenderContext } from './theme-renderer';
+import type { NavigationContext } from './navigation-utils';
+import type { ThemeRenderContext } from './theme/theme-types';
 
-// Base paths for themes
-const SRC_THEMES_PATH = path.join(process.cwd(), 'src', 'themes');
-const PUBLIC_THEMES_PATH = path.join(process.cwd(), 'public', 'themes');
-const ROOT_THEMES_PATH = path.join(process.cwd(), 'themes');
+// Import modules from new structure
+import './theme/theme-types';
+import { getThemeById, loadThemeTemplate } from './theme/theme-loader';
+import { generateCustomizedCSS } from './theme/theme-customization';
+import { 
+  renderPageWithTemplate,
+  createDebugHtmlComment
+} from './theme/theme-renderer-service';
 
-/**
- * Theme manifest interface
- */
-export interface ThemeManifest {
-  id?: string;
-  name: string;
-  description: string;
-  version: string;
-  author: string;
-  thumbnail?: string;
-  templates: {
-    layout: string;
-    home: string;
-    about: string;
-    posts: string;
-    post: string;
-    [key: string]: string;
-  };
-  customization: {
-    colors: Record<string, ThemeColorOption>;
-    fonts: Record<string, ThemeFontOption>;
-    options: Record<string, ThemeToggleOption>;
-  };
-  defaultContent?: any;
-}
-
-export interface ThemeColorOption {
-  label: string;
-  value: string;
-  variable: string;
-}
-
-export interface ThemeFontOption {
-  label: string;
-  value: string;
-  variable: string;
-}
-
-export interface ThemeToggleOption {
-  label: string;
-  type: string;
-  value: boolean | string | number;
-  options?: {id: string, label: string, value: string}[];
-}
-
-/**
- * Get all available themes
- */
-export async function getAvailableThemes(): Promise<ThemeManifest[]> {
-  try {
-    const themes: ThemeManifest[] = [];
-    
-    // Check root themes folder for JSON manifests
-    if (fs.existsSync(ROOT_THEMES_PATH)) {
-      const rootThemesFolders = fs.readdirSync(ROOT_THEMES_PATH);
-      
-      for (const folder of rootThemesFolders) {
-        // Skip if not a directory
-        if (!fs.statSync(path.join(ROOT_THEMES_PATH, folder)).isDirectory()) {
-          continue;
-        }
-
-        // Check if manifest exists as JSON
-        const manifestPath = path.join(ROOT_THEMES_PATH, folder, 'manifest.json');
-        if (fs.existsSync(manifestPath)) {
-          try {
-            // Load the JSON manifest
-            const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-            manifest.id = folder;
-            themes.push(manifest);
-          } catch (error) {
-            console.error(`Error loading theme manifest for ${folder}:`, error);
-          }
-        }
-      }
-    }
-    
-    return themes;
-  } catch (error) {
-    console.error('Error loading themes:', error);
-    return [];
-  }
-}
-
-/**
- * Get a specific theme by ID
- */
-export async function getThemeById(themeId: string): Promise<ThemeManifest | null> {
-  try {
-    const themes = await getAvailableThemes();
-    return themes.find(theme => theme.id === themeId) || null;
-  } catch (error) {
-    console.error(`Error getting theme ${themeId}:`, error);
-    return null;
-  }
-}
-
-/**
- * Load a theme template file
- */
-export function loadThemeTemplate(themeId: string, templatePath: string): string {
-  try {
-    // First try loading from src/themes
-    const srcPath = path.join(SRC_THEMES_PATH, themeId, templatePath);
-    if (fs.existsSync(srcPath)) {
-      return fs.readFileSync(srcPath, 'utf-8');
-    }
-    
-    // Then try root themes folder
-    const rootPath = path.join(ROOT_THEMES_PATH, themeId, templatePath);
-    if (fs.existsSync(rootPath)) {
-      return fs.readFileSync(rootPath, 'utf-8');
-    }
-    
-    // If not found in src or root, try public/themes
-    const publicPath = path.join(PUBLIC_THEMES_PATH, themeId, templatePath);
-    if (fs.existsSync(publicPath)) {
-      return fs.readFileSync(publicPath, 'utf-8');
-    }
-    
-    throw new Error(`Template file not found in any theme paths`);
-  } catch (error) {
-    console.error(`Error loading template ${templatePath} for theme ${themeId}:`, error);
-    return '<!-- Error loading template -->';
-  }
-}
-
-/**
- * Generate CSS with user customizations
- */
-export function generateCustomizedCSS(
-  themeId: string,
-  customizations: {
-    colors?: Record<string, string>;
-    fonts?: Record<string, string>;
-    toggles?: string[];
-  }
-): string {
-  // Start with base CSS reset
-  let customCSS = ':root {\n';
-  
-  // Add color customizations
-  if (customizations.colors) {
-    Object.entries(customizations.colors).forEach(([id, value]) => {
-      customCSS += `  --ms-${id}: ${value};\n`;
-    });
-  }
-  
-  // Add font customizations
-  if (customizations.fonts) {
-    Object.entries(customizations.fonts).forEach(([id, value]) => {
-      customCSS += `  --ms-font-${id}: ${value};\n`;
-    });
-  }
-  
-  customCSS += '}\n\n';
-  
-  // Add toggle classes
-  if (customizations.toggles && customizations.toggles.length > 0) {
-    customCSS += '/* Toggle customizations */\n';
-    // These would be defined in the theme's CSS already
-  }
-  
-  return customCSS;
-}
+// Re-export types and functions that should be available from the main service
+export * from './theme/theme-types';
+export { getAvailableThemes, getThemeById } from './theme/theme-loader';
+export { generateCustomizedCSS } from './theme/theme-customization';
 
 /**
  * Render a page using a theme with navigation context
@@ -201,101 +40,49 @@ export async function renderThemePage(
     
     // Check if the page template exists
     const pageTemplatePath = theme.templates[page];
+    
+    // If the specific page template doesn't exist, fall back to a generic content template
     if (!pageTemplatePath) {
-      throw new Error(`Page template ${page} not found in theme ${themeId}`);
+      console.log(`[ThemeService] Page template '${page}' not found in theme '${themeId}', using generic template`);
+      
+      // First try to use a 'custom' template if it exists
+      if (theme.templates.custom) {
+        console.log(`[ThemeService] Using 'custom' template for page '${page}'`);
+        const layoutTemplate = loadThemeTemplate(themeId, theme.templates.layout);
+        const pageTemplate = loadThemeTemplate(themeId, theme.templates.custom);
+        const renderedHtml = renderPageWithTemplate(
+          themeId, layoutTemplate, pageTemplate, context as ThemeRenderContext, page, userCustomCSS
+        );
+        return createDebugHtmlComment(themeId, page, context as ThemeRenderContext, renderedHtml);
+      }
+      
+      // Otherwise use the 'about' template as a fallback for custom pages
+      if (theme.templates.about) {
+        console.log(`[ThemeService] Using 'about' template as fallback for page '${page}'`);
+        const layoutTemplate = loadThemeTemplate(themeId, theme.templates.layout);
+        const pageTemplate = loadThemeTemplate(themeId, theme.templates.about);
+        const renderedHtml = renderPageWithTemplate(
+          themeId, layoutTemplate, pageTemplate, context as ThemeRenderContext, page, userCustomCSS
+        );
+        return createDebugHtmlComment(themeId, page, context as ThemeRenderContext, renderedHtml);
+      }
+      
+      throw new Error(`No suitable template found for page '${page}' in theme '${themeId}'`);
     }
     
     // Load the templates
     const layoutTemplate = loadThemeTemplate(themeId, theme.templates.layout);
     const pageTemplate = loadThemeTemplate(themeId, pageTemplatePath);
     
-    // Generate navigation HTML if navigation context is provided
-    let navigationHtml = context.navigation || '';
-    if (context.navigationContext) {
-      navigationHtml = generateNavigationHtml(context.navigationContext);
-    }
+    // Render the page and add debug info
+    const renderedHtml = renderPageWithTemplate(
+      themeId, layoutTemplate, pageTemplate, context as ThemeRenderContext, page, userCustomCSS
+    );
+    return createDebugHtmlComment(themeId, page, context as ThemeRenderContext, renderedHtml);
     
-    // Render the page content first
-    const pageContent = renderTemplate(pageTemplate, {
-      ...context,
-      navigation: navigationHtml
-    });
-    
-    // Pre-render debugging
-    const debugContext = {
-      theme: themeId,
-      pageType: page,
-      navigationContext: context.navigationContext,
-      site: context.site
-    };
-    debugThemeRendering('pre-render', debugContext);
-    
-    // Then render the full layout with the page content
-    const fullContext = {
-      ...context,
-      content: pageContent,
-      navigation: navigationHtml,
-      userCSS: userCustomCSS,
-      currentYear: new Date().getFullYear(),
-    };
-    
-    let renderedHtml = renderTemplate(layoutTemplate, fullContext);
-    
-    // Post-render debugging
-    debugThemeRendering('post-render', debugContext, renderedHtml);
-    
-    // Post-process navigation links if navigation context is provided
-    if (context.navigationContext) {
-      console.log(`[SUBDOMAIN-DEBUG] Theme rendering details:
-        - Theme ID: ${themeId}
-        - Page type: ${page}
-        - Username: ${context.navigationContext.username}
-        - Is subdomain: ${context.navigationContext.isSubdomain}
-        - Current page: ${context.navigationContext.currentPage || 'home'}
-        - Template context keys: ${Object.keys(fullContext).join(', ')}`);
-      
-      try {
-        // Apply navigation link transformations
-        renderedHtml = updateNavigationLinks(renderedHtml, context.navigationContext);
-        
-        // Verify links are correctly formatted - catch any missed transformations
-        const linkVerification = verifyNavigationLinks(renderedHtml, context.navigationContext);
-        
-        if (linkVerification.incorrectLinks.length > 0) {
-          console.warn(`[SUBDOMAIN-DEBUG] Found ${linkVerification.incorrectLinks.length} incorrectly formatted links after transformation:`, 
-            linkVerification.incorrectLinks);
-          
-          // Apply additional fixes for incorrect links
-          renderedHtml = fixIncorrectLinks(renderedHtml, context.navigationContext, linkVerification);
-        }
-        
-        // Post-navigation update debugging
-        debugThemeRendering('post-navigation-update', debugContext, renderedHtml);
-      } catch (error) {
-        console.error(`[SUBDOMAIN-DEBUG] Error in navigation link processing:`, error);
-        // Continue with the rendering even if link processing fails
-      }
-    }
-    
-    // Add comments for debugging in HTML source
-    renderedHtml = `
-<!-- 
-MINISPACE DEBUG INFO:
-  Theme: ${themeId}
-  Page: ${page}
-  Username: ${context.navigationContext?.username || 'unknown'}
-  Is subdomain: ${context.navigationContext?.isSubdomain || false}
-  Timestamp: ${new Date().toISOString()}
--->
-${renderedHtml}`;
-    
-    console.log(`[SUBDOMAIN-DEBUG] Final rendered HTML size: ${renderedHtml.length} bytes`);
-    return renderedHtml;
   } catch (error) {
     console.error(`Error rendering page ${page} with theme ${themeId}:`, error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return `<h1>Error rendering page</h1><p>${errorMessage}</p>`;
   }
 }
-
-const DEFAULT_THEME = 'simple'; 

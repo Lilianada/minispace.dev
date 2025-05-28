@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
   const { pathname, search, hash, host, hostname, protocol } = new URL(request.url);
 
   // Get detailed path analysis
-  const pathAnalysis = analyzeCurrentPath(request);
+  const pathAnalysis = await analyzeCurrentPath(request);
   const pathDebugInfo = getPathDebugInfo(pathAnalysis);
   
   // Extract key information for backward compatibility
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     },
     // Include enhanced path analysis
     pathAnalysis: pathDebugInfo,
-    routingIssues: pathDebugInfo.possibleIssues.filter(issue => issue.detected),
+    routingIssues: pathDebugInfo.possibleIssues.filter((issue: { detected: any; }) => issue.detected),
     correctPath: pathDebugInfo.correctPath
   };
   

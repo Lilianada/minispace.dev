@@ -11,7 +11,7 @@ interface UserProfilePageProps {
 }
 
 export default async function UserProfilePage({ params }: UserProfilePageProps) {
-  console.error('🚨🚨🚨 USER PROFILE PAGE EXECUTING - THIS SHOULD ALWAYS SHOW 🚨🚨🚨');
+  // console.error('🚨🚨🚨 USER PROFILE PAGE EXECUTING - THIS SHOULD ALWAYS SHOW 🚨🚨🚨');
   const { username } = await params;
   const headersList = await headers();
   const host = headersList.get('host') || '';
@@ -225,6 +225,28 @@ Feel free to reach out if you'd like to connect!`,
       navigationContext,
       currentYear: new Date().getFullYear()
     };
+    
+    // Check if the user has a custom home page defined
+    try {
+      const customHomePageRef = adminDb.collection('users')
+        .doc(username)
+        .collection('pages')
+        .doc('home');
+      
+      const customHomePageDoc = await customHomePageRef.get();
+      
+      if (customHomePageDoc.exists && customHomePageDoc.data()?.published === true) {
+        console.log(`[User Profile] User has a custom home page, redirecting to dynamic handler`);
+        
+        // Use a client-side redirect to the dynamic page handler
+        return (
+          <meta httpEquiv="refresh" content={`0;url=/${username}/home`} />
+        );
+      }
+    } catch (error) {
+      console.warn('[User Profile] Error checking for custom home page:', error);
+      // Continue with standard home page if there was an error
+    }
     
     // Render the theme
     const htmlContent = await renderThemePage(themeId, 'home', renderContext);
