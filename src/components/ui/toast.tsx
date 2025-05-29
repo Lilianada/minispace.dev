@@ -5,7 +5,7 @@ import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Toast Context and Provider
-type ToastType = 'success' | 'destructive' | 'warning' | 'info';
+export type ToastType = 'success' | 'destructive' | 'warning' | 'info';
 
 interface Toast {
   id: string;

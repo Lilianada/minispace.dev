@@ -1,10 +1,9 @@
 /**
  * Utility functions to adapt between different types in the application
  */
-import { UserData as AuthUserData } from '@/lib/auth';
-import { UserData as AuthContextUserData } from '@/lib/auth-context';
+import { UserData as FirebaseUserData } from '@/services/firebase/auth-service';
 
-// Define the social links type based on the auth-context UserData interface
+// Define the social links type for clarity
 type SocialLinks = {
   website?: string;
   twitter?: string;
@@ -15,14 +14,14 @@ type SocialLinks = {
 };
 
 /**
- * Converts UserData from auth.ts to UserData from auth-context.tsx
- * This helps resolve type compatibility issues between the two interfaces
+ * Converts UserData from Firestore to the standardized UserData type
+ * This helps resolve type compatibility issues between different data sources
  */
-export const adaptUserData = (data: AuthUserData | null): AuthContextUserData | null => {
+export const adaptUserData = (data: any | null): FirebaseUserData | null => {
   if (!data) return null;
   
-  // Create default social links object
-  const socialLinks: SocialLinks = {
+  // Create default social links object if not present
+  const socialLinks: SocialLinks = data.socialLinks || {
     website: '',
     twitter: '',
     github: '',
@@ -32,33 +31,32 @@ export const adaptUserData = (data: AuthUserData | null): AuthContextUserData | 
   
   return {
     username: data.username,
-    email: data.email || '', // Convert string | null to string
+    email: data.email || '', // Convert nullish email to empty string
     displayName: data.displayName,
     photoURL: data.photoURL,
-    uid: data.uid,
-    bio: '', // Default empty bio since it doesn't exist in auth.ts UserData
-    socialLinks, // Default empty social links
-    // Convert string timestamps to Date objects
-    updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
-    createdAt: data.createdAt ? new Date(data.createdAt) : new Date()
+    uid: data.uid, // Required field
+    bio: data.bio || '', // Default empty bio if not present
+    socialLinks, 
+    // Convert string timestamps to Date objects if needed
+    updatedAt: data.updatedAt ? (data.updatedAt instanceof Date ? data.updatedAt : new Date(data.updatedAt)) : new Date(),
+    createdAt: data.createdAt ? (data.createdAt instanceof Date ? data.createdAt : new Date(data.createdAt)) : new Date()
   };
 };
 
 /**
- * Type guard to check if an object conforms to the AuthContextUserData interface
+ * Type guard to check if an object conforms to the FirebaseUserData interface
  */
-export const isAuthContextUserData = (data: any): data is AuthContextUserData => {
-  return data && 
-         typeof data.username === 'string' && 
-         typeof data.email === 'string';
+export const isUserData = (data: any): data is FirebaseUserData => {
+  return data &&
+    typeof data.username === 'string' &&
+    typeof data.email === 'string' &&
+    typeof data.uid === 'string'; // Check required fields
 };
 
 /**
- * Type guard to check if an object conforms to the AuthUserData interface
+ * Type guard to check if an object conforms to the UserData interface from auth context
+ * This is an alias for isUserData for backward compatibility
  */
-export const isAuthUserData = (data: any): data is AuthUserData => {
-  return data && 
-         typeof data.username === 'string' && 
-         typeof data.email === 'string' && 
-         typeof data.uid === 'string';
+export const isAuthContextUserData = (data: any): data is FirebaseUserData => {
+  return isUserData(data);
 };

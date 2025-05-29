@@ -117,7 +117,19 @@ export function verifyNavigationLinks(html: string, context: NavigationContext):
       // In path routing, links should have the username in the path
       const hasUsername = path.startsWith(`/${username}`);
       
-      if (!hasUsername && path !== '/' && !path.startsWith('/_')) {
+      // Special paths that should not be prefixed with username
+      const isSpecialPath = path.startsWith('/_') || 
+                           path.startsWith('/api/') || 
+                           path.startsWith('/themes/') || 
+                           path.includes('.css') || 
+                           path.includes('.js') ||
+                           path.includes('.ico') ||
+                           path.includes('.png') ||
+                           path.includes('.jpg');
+      
+      console.log(`[LINK-DEBUG] Checking path: ${path}, username: ${username}, hasUsername: ${hasUsername}, isSpecialPath: ${isSpecialPath}`);
+      
+      if (!hasUsername && path !== '/' && !isSpecialPath) {
         // This is incorrect - for path-based routing, links should have username prefix
         // Skip special paths like /_next, etc.
         

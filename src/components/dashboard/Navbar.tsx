@@ -2,11 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/lib/auth-context';
+import useAuth from '@/hooks/useAuth';
 import { getDashboardPath } from '@/lib/route-utils';
 
 export default function Navbar() {
-  const { user, userData, logout } = useAuth();
+  // Use type assertion to address TypeScript issue with the auth context
+  const auth = useAuth() as {
+    user: any;
+    userData: any;
+    logout: () => Promise<void>;
+    [key: string]: any;
+  };
+  const { user, userData, logout } = auth;
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [dashboardUrl, setDashboardUrl] = useState('/signin?redirect=dashboard');

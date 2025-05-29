@@ -85,15 +85,65 @@ export function getAdminConfig(): { status: AdminInitStatus; config: AdminConfig
     
     // Parse credentials
     try {
-      const credentials = JSON.parse(credentialsJson);
-      const config: AdminConfig = {
-        credential: cert(credentials),
-        projectId
-      };
+      // Base64 decode the credentials before parsing as JSON
+      const decodedCredentials = Buffer.from(credentialsJson, 'base64').toString('utf-8');
       
-      return { status: true, config };
+      // Parse JSON
+      let credentials;
+      try {
+        credentials = JSON.parse(decodedCredentials);
+      } catch (jsonError) {
+        console.error('[Firebase Admin] JSON parse error:', jsonError);
+        throw new Error('Invalid JSON in credentials');
+      }
+      
+      // Validate credentials
+      if (!credentials || typeof credentials !== 'object') {
+        throw new Error('Credentials must be a valid JSON object');
+      }
+      
+      // Enhanced private key handling
+      if (credentials.private_key && typeof credentials.private_key === 'string') {
+        // Replace any literal '\n' strings with actual newlines
+        credentials.private_key = credentials.private_key.replace(/\\n/g, '\n');
+        
+        // Check for proper PEM format
+        if (!credentials.private_key.includes('-----BEGIN PRIVATE KEY-----')) {
+          console.warn('[Firebase Admin] Private key missing PEM header, attempting to fix format');
+          credentials.private_key = 
+            '-----BEGIN PRIVATE KEY-----\n' + 
+            credentials.private_key.replace(/-----(BEGIN|END) PRIVATE KEY-----/g, '').trim() + 
+            '\n-----END PRIVATE KEY-----';
+        }
+        
+        // Remove any extra whitespace or line breaks
+        credentials.private_key = credentials.private_key.replace(/\s+/g, '\n').trim();
+      }
+      
+      // Validate critical fields
+      if (!credentials.project_id) {
+        console.warn('[Firebase Admin] Missing project_id in credentials');
+        throw new Error('Missing project_id in credentials');
+      }
+      
+      if (!credentials.client_email) {
+        console.warn('[Firebase Admin] Missing client_email in credentials');
+        throw new Error('Missing client_email in credentials');
+      }
+      
+      // Create config object
+      try {
+        const config: AdminConfig = {
+          credential: cert(credentials),
+          projectId
+        };
+        return { status: true, config };
+      } catch (certError) {
+        console.error('[Firebase Admin] Failed to create cert:', certError);
+        throw certError;
+      }
     } catch (error) {
-      console.error('[Firebase Admin] Failed to parse credentials:', error);
+      console.error('[Firebase Admin] Failed to parse or process credentials:', error);
       return { status: isDev ? 'development' : false, config: null };
     }
   } catch (error) {

@@ -13,7 +13,7 @@ import { updatePassword, updateEmail, sendEmailVerification } from 'firebase/aut
 import { useToast } from '@/hooks/use-toast';
 
 import { User } from 'firebase/auth';
-import { UserData } from '@/lib/auth-context';
+import { UserData } from '@/services/firebase/auth-service';
 
 interface AccountSettingsProps {
   user: User | null;

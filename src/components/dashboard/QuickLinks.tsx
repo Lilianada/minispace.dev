@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { useAuth } from '@/lib/auth-context';
+import useAuth from '@/hooks/useAuth';
 
 export default function QuickLinks() {
   const { userData } = useAuth();

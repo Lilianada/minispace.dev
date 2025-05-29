@@ -17,7 +17,7 @@ import {
   Loader,
   Clock
 } from 'lucide-react';
-import { useAuth } from '@/lib/auth-context';
+import useAuth from '@/hooks/useAuth';
 
 interface AnalyticsPageClientProps {
   params: { username: string };

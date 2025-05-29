@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/auth-context';
+import useAuth from '@/hooks/useAuth';
+import refreshUserData from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -18,7 +19,7 @@ import { SocialLinksForm } from '@/components/profile/SocialLinksForm';
 import { validateUsername } from '@/lib/username-utils';
 
 export default function ProfileClient() {
-  const { user, userData, refreshUserData } = useAuth();
+  const { user, userData } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);

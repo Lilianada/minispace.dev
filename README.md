@@ -144,12 +144,22 @@ npm start
 ```
 
 ## Documentation
+
+### Architecture & Design
+- [Architecture Overview](./docs/ARCHITECTURE.md)
+- [Component Organization](./docs/component-organization.md)
+- [Provider Structure](./docs/provider-structure.md)
+
+### Routing & Navigation
 - [Subdomain Routing Guide](./docs/subdomain-routing-guide.md)
 - [Subdomain Debugging Guide](./docs/subdomain-debug-guide.md)
-- [Subdomain Routing Debug Guide](./docs/subdomain-routing-debug-guide.md) ← New comprehensive guide for troubleshooting 404 errors
+- [Subdomain Routing Debug Guide](./docs/subdomain-routing-debug-guide.md)
 - [Dynamic Navigation Guide](./docs/dynamic-navigation-guide.md)
+
+### Features & Services
 - [Firebase Admin Setup](./docs/firebase-admin-setup.md)
 - [Theming Guide](./docs/theming.md)
+- [Analytics Implementation](./docs/analytics-implementation.md)
 
 ## Local Development 
 ### Subdomain Testing

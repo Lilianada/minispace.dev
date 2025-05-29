@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
-import { ToastProvider } from "@/components/ui/toast";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/lib/auth-context";
 import { ProgressBar } from "@/components/ui/progress-bar";
+import Providers from "@/components/common/Providers";
 // Import debug overlay component
 import { RoutingDebugOverlay } from "@/components/debug/RoutingDebugOverlay";
 
@@ -50,16 +49,14 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased">
         <ProgressBar />
-        <AuthProvider>
-        <ToastProvider>
-            <TooltipProvider>
-              {children}
-              <Analytics />
-              <Toaster />
-              <RoutingDebugOverlay />
-            </TooltipProvider>
-        </ToastProvider>
-        </AuthProvider>
+        <Providers>
+          <TooltipProvider>
+            {children}
+            <Analytics />
+            <Toaster />
+            <RoutingDebugOverlay />
+          </TooltipProvider>
+        </Providers>
       </body>
     </html>
   );

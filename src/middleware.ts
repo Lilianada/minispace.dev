@@ -64,7 +64,7 @@ export const config = {
   matcher: [
     // Dashboard routes
     '/:username/dashboard/:path*',
-    // All routes for subdomain handling, except Next.js static files and API routes
-    '/((?!_next/static|_next/image|favicon.ico|api/).*)',
+    // All routes for subdomain handling, except Next.js static files, API routes, theme assets, and auth pages
+    '/((?!_next/static|_next/image|favicon.ico|api/|themes/|signin|signup|forgot-password).*)',
   ],
 };

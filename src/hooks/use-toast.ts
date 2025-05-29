@@ -2,7 +2,8 @@
 "use client"
 
 import * as React from "react"
-import { useToast as useToastInternal } from "@/components/ui/toast"
+import { useToast as useToastInternal, ToastType } from "@/components/ui/toast"
+import { warn } from "console"
 
 const TOAST_LIMIT = 10
 const TOAST_REMOVE_DELAY = 5000
@@ -13,6 +14,7 @@ type ToasterToast = {
   description?: React.ReactNode
   action?: React.ReactNode
   onClose?: () => void
+  open?: boolean
 }
 
 type ToastProps = {
@@ -213,17 +215,11 @@ function useToast() {
     toast: ({ title, description, variant = "default" }: ToastProps) => {
       // Map the variant to our toast types
       const typeMap = {
-        default: "info",
-        destructive: "error",
-        success: "success",
+        default: "default" as ToastType,
+        destructive: "error" as ToastType,
+        success: "success" as ToastType,
+        warning: "warning" as ToastType,
       } as const
-
-      const message = description ? `${title}: ${description}` : title
-
-      addToast({
-        message,
-        type: typeMap[variant],
-      })
     },
     dismiss: dismissToast,
   }

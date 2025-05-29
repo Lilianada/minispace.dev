@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/lib/auth-context';
+import useAuth from '@/hooks/useAuth';
 import { StorageUsage, StorageUpgradePrompt } from '@/components/ui/storage-usage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';

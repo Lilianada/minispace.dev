@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { User } from 'firebase/auth';
-import { UserData } from '@/lib/auth-context';
+import { UserData } from '@/services/firebase/auth-service';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';

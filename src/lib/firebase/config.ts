@@ -6,6 +6,7 @@ import {
   Auth 
 } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
+import { getStorage, FirebaseStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -23,6 +24,7 @@ const isBrowser = typeof window !== "undefined";
 let app: FirebaseApp;
 let auth: Auth;
 let db: Firestore;
+let storage: FirebaseStorage;
 
 // Function to initialize Firebase - will be called immediately
 function initFirebase() {
@@ -41,21 +43,23 @@ function initFirebase() {
     }
     
     db = getFirestore(app);
+    storage = getStorage(app);
     
-    return { app, auth, db };
+    return { app, auth, db, storage };
   } catch (error) {
     console.error("Firebase initialization error:", error);
     // Create dummy objects that won't break code
     return {
       app: {} as FirebaseApp,
       auth: {} as Auth,
-      db: {} as Firestore
+      db: {} as Firestore,
+      storage: {} as FirebaseStorage
     };
   }
 }
 
 // Initialize Firebase immediately
-const { app: firebaseApp, auth: firebaseAuth, db: firebaseDb } = initFirebase();
+const { app: firebaseApp, auth: firebaseAuth, db: firebaseDb, storage: firebaseStorage } = initFirebase();
 
 // Export the initialized instances
-export { firebaseApp as app, firebaseAuth as auth, firebaseDb as db };
+export { firebaseApp as app, firebaseAuth as auth, firebaseDb as db, firebaseStorage as storage };

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuth } from '@/lib/auth-context';
+import useAuth from '@/hooks/useAuth';
 import { StorageUsage, StorageUpgradePrompt } from '../ui/storage-usage';
 import { ExternalLink } from 'lucide-react';
 

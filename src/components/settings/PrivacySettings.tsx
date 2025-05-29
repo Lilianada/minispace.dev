@@ -10,7 +10,7 @@ import { db } from '@/lib/firebase/config';
 import { useToast } from '@/hooks/use-toast';
 
 import { User } from 'firebase/auth';
-import { UserData } from '@/lib/auth-context';
+import { UserData } from '@/services/firebase/auth-service';
 
 interface PrivacySettingsProps {
   user: User | null;

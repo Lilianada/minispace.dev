@@ -264,7 +264,11 @@ export function updateNavigationLinks(html: string, context: NavigationContext):
     }
     
     // Skip special paths like _next, api, etc.
-    if (section.startsWith('_') || section.startsWith('api/') || section.startsWith('static/')) {
+    if (section.startsWith('_') || 
+        section.startsWith('api/') || 
+        section.startsWith('static/') ||
+        section.startsWith('themes/') ||
+        section.includes('.css')) {
       console.log(`[SUBDOMAIN-DEBUG] Skipping special path: ${match}`);
       return match;
     }

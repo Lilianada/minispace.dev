@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { calculateStorageUsage, formatBytes, StorageUsageData } from '@/lib/storage-utils';
-import { useAuth } from '@/lib/auth-context';
+import useAuth from '@/hooks/useAuth';
 import { Button } from './button';
 import { Skeleton } from './skeleton';
 import Link from 'next/link';

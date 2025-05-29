@@ -10,7 +10,7 @@ import { deleteUser } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 
 import { User } from 'firebase/auth';
-import { UserData } from '@/lib/auth-context';
+import { UserData } from '@/services/firebase/auth-service';
 
 interface DangerZoneProps {
   user: User | null;

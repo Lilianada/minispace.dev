@@ -77,7 +77,25 @@ export async function analyzeCurrentPath(request?: NextRequest): Promise<PathAna
   } else if (originalPath.startsWith('/')) {
     // From path (format: /{username}/...)
     const pathSegments = originalPath.split('/').filter(Boolean);
-    if (pathSegments.length > 0) {
+    
+    // Skip auth-related paths and other system paths
+    const systemPaths = [
+      'signin', 'signup', 'forgot-password', 
+      'api', 'docs', 'terms', 'privacy', 'contact', 'about', 
+      'favicon', 'favicon.ico', '_next', 'themes'
+    ];
+    
+    // Check for special file extensions that should never be usernames
+    const isSpecialFile = pathSegments.length > 0 && (
+      pathSegments[0].endsWith('.ico') ||
+      pathSegments[0].endsWith('.png') ||
+      pathSegments[0].endsWith('.jpg') ||
+      pathSegments[0].endsWith('.svg') ||
+      pathSegments[0].endsWith('.css') ||
+      pathSegments[0].endsWith('.js')
+    );
+    
+    if (pathSegments.length > 0 && !systemPaths.includes(pathSegments[0]) && !isSpecialFile) {
       detectedUsername = pathSegments[0];
     }
   }
