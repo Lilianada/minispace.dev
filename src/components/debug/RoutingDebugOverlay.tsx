@@ -27,12 +27,9 @@ export function RoutingDebugOverlay() {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Only run this in production when explicitly enabled via query param or localStorage
-    const shouldShow = 
-      typeof window !== 'undefined' && (
-        window.location.search.includes('debug_routing=true') || 
-        localStorage.getItem('minispace_debug_routing') === 'true'
-      );
+    // Use the debug configuration to determine whether to show the overlay
+    const { shouldShowDebugComponent, isDebugFeatureEnabled } = require('@/lib/debug-config');
+    const shouldShow = shouldShowDebugComponent() || isDebugFeatureEnabled('showRoutingOverlay');
 
     if (shouldShow) {
       // First show basic client-side information

@@ -9,7 +9,12 @@
     "seed:firestore": "ts-node --compiler-options {\"module\":\"CommonJS\"} scripts/seed-firestore.ts",
     "lint": "next lint",
     "generate:thumbnails": "node scripts/generate-thumbnails.js",
-    "copy:theme-assets": "sh scripts/copy-theme-assets.sh"
+    "copy:theme-assets": "sh scripts/copy-theme-assets.sh",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:routing": "jest tests/routing",
+    "test:firebase": "jest tests/firebase",
+    "test:navigation": "jest tests/navigation"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",

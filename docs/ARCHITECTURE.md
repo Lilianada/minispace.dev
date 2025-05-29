@@ -2,22 +2,25 @@
 
 ## Overview
 
-This document outlines the architectural patterns and best practices used in the Minispace.dev project.
+This document outlines the architectural patterns and best practices used in the Minispace.dev project. Minispace is a lightweight blogging platform with a focus on performance, minimalism, and user experience.
 
 ## Project Structure
 
 ```
-src/
 ├── app/             # Next.js App Router pages
 ├── components/      # React components organized by type
 │   ├── common/      # Shared components used across features
+│   ├── debug/       # Development-only debugging components
 │   ├── features/    # Feature-specific components
 │   └── ui/          # Base UI components (design system)
 ├── contexts/        # React Context providers
 ├── hooks/           # Custom React hooks
 ├── lib/             # Core utilities and configuration
+│   ├── firebase/    # Firebase configuration and utilities
+│   └── theme/       # Theme management utilities
 ├── middleware/      # Middleware modules for routing/auth
 ├── services/        # Service modules for external interactions
+├── tests/           # Test suite organized by feature areas
 └── types/           # TypeScript type definitions
 ```
 
@@ -27,8 +30,10 @@ src/
 
 Components follow a clear organization pattern:
 
-1. **UI Components** (`/components/ui`): Design system building blocks 
+1. **UI Components** (`/components/ui`): Design system building blocks with error boundaries
 2. **Common Components** (`/components/common`): Shared components across features
+3. **Feature Components**: Specific to functional areas (posts, profiles, etc.)
+4. **Debug Components**: Development-only components for debugging
 3. **Feature Components** (`/components/features`): Feature-specific components
 
 See [Component Organization Guidelines](./docs/component-organization.md) for details.
@@ -98,6 +103,66 @@ State is managed according to these principles:
 3. **Service Abstraction**: Abstract external services for easy replacement/testing
 4. **Consistent Patterns**: Follow established patterns for new features
 5. **Type Safety**: Use TypeScript types for all components and functions
+
+## Error Handling
+
+The application implements a multi-layered approach to error handling:
+
+1. **Firebase Error Handling**: 
+   - Using `handleFirebaseOperation` wrapper for consistent error handling
+   - Standardized `FirebaseResult<T>` type with success/error states
+   - Unified error message formatting for user-friendly messages
+
+2. **React Error Boundaries**:
+   - Global error boundary in layout with fallback UI
+   - Component-level error boundaries for critical features
+   - Error reporting and recovery mechanisms
+
+3. **API Error Handling**:
+   - Consistent error response formats
+   - HTTP status codes aligned with error types
+   - Structured error payloads with actionable information
+
+For implementation details, see our [Error Handling Guide](./error-handling-guide.md).
+
+### Debug Configuration System
+
+The application includes a flexible debug configuration system for development purposes:
+
+1. **Core Debug Utilities**:
+   - Located in `/src/lib/debug-config.ts`
+   - Environment-aware feature toggles
+   - Persistent configuration via localStorage
+
+2. **Debug Features**:
+   - `showRoutingOverlay`: Displays routing information for debugging
+   - `showPerformanceMetrics`: Displays performance metrics
+   - `showFirebaseDebug`: Enables verbose Firebase logging
+   - `verboseLogging`: Enables extended console logging
+   - `showThemeDebug`: Displays theme-related debug information
+
+3. **Enabling Debug Features**:
+   - In development: Most features enabled by default
+   - In production:
+     - Via URL parameters: `?debug_mode=true` or `?debug_featureName=true`
+     - Via localStorage configuration
+   
+4. **Debug Components**:
+   - All debug components check for appropriate debug flags
+   - Conditionally rendered based on environment and configuration
+   - Zero impact on production bundle when disabled
+
+5. **Usage Example**:
+   ```typescript
+   import { isDev, isDebugFeatureEnabled } from '@/lib/debug-config';
+
+   // Conditional rendering based on debug flags
+   if (isDev || isDebugFeatureEnabled('showRoutingOverlay')) {
+     // Display debug component
+   }
+   ```
+
+For more details on working with the debug system, see the [Error Handling Guide](./error-handling-guide.md).
 
 ## Development Workflow
 

@@ -24,6 +24,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { db } from "./config";
+import { handleFirebaseOperation, FirebaseResult } from "./error-handler";
 
 // Helper function to convert Firestore timestamps to ISO strings
 const formatTimestamp = (timestamp: Timestamp | undefined) => {
@@ -82,14 +83,12 @@ const formatDoc = (
 
 export const firestore = {
   posts: {
-    // Make sure the getPosts method in firestore.ts is properly implemented
-
     // Get a user's posts
     getPosts: async (
       userId: string,
       { status = "all", sort = "newest" } = {}
-    ) => {
-      try {
+    ): Promise<FirebaseResult<any[]>> => {
+      return handleFirebaseOperation(async () => {
         console.log(
           "Firestore: Getting posts for user:",
           userId,
@@ -160,12 +159,7 @@ export const firestore = {
 
         console.log("Returning", posts.length, "formatted posts");
         return posts;
-      } catch (error) {
-        console.error("Error getting user posts:", error);
-        // Return an empty array instead of throwing, which is more resilient
-        // and will prevent the API from crashing
-        return [];
-      }
+      });
     },
     // Get all posts across all users
     getAll: async ({
@@ -363,8 +357,8 @@ export const firestore = {
         tags?: string[];
         authorId?: string;
       }
-    ) => {
-      try {
+    ): Promise<FirebaseResult<any>> => {
+      return handleFirebaseOperation(async () => {
         if (!userId) {
           console.error("User ID is required to create a post");
           throw new Error("User ID is required");
@@ -456,10 +450,7 @@ export const firestore = {
         const formattedPost = formatDoc(newPostSnap, userId);
         console.log("Returning formatted post:", formattedPost);
         return formattedPost;
-      } catch (error) {
-        console.error("Error creating post:", error);
-        throw error;
-      }
+      });
     },
 
     // Update a post
@@ -473,8 +464,8 @@ export const firestore = {
         status?: "published" | "draft";
         tags?: string[];
       }
-    ) => {
-      try {
+    ): Promise<FirebaseResult<any>> => {
+      return handleFirebaseOperation(async () => {
         const { title, content, excerpt, status, tags } = data;
 
         // 1. Check if the post exists in the user's subcollection
@@ -570,10 +561,7 @@ export const firestore = {
         // Return the updated post
         const updatedPostSnap = await getDoc(postRef);
         return formatDoc(updatedPostSnap, userId);
-      } catch (error) {
-        console.error("Error updating post:", error);
-        throw error;
-      }
+      });
     },
 
     // Update a post's status

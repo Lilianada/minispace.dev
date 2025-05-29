@@ -1,12 +1,21 @@
 /**
  * Path Analyzer
  * 
- * Helper utilities to analyze and troubleshoot paths in both subdomain and path-based routing
+ * Helper utilities to analyze and troubleshoot paths in both subdomain and path-based routing.
+ * This module is critical for the proper functioning of the subdomain routing system.
+ * 
+ * @module path-analyzer
  */
 
 import { headers } from 'next/headers';
 import { NextRequest } from 'next/server';
 
+/**
+ * Represents the complete analysis of a path including subdomain detection,
+ * username extraction, and path normalization.
+ * 
+ * @interface PathAnalysis
+ */
 export interface PathAnalysis {
   detectedUsername: string | null;
   isSubdomain: boolean;
@@ -18,17 +27,28 @@ export interface PathAnalysis {
   };
   hostInfo: {
     hostname: string;
+        /** Array of domain parts (e.g. ['username', 'minispace', 'dev']) */
     domainParts: string[];
+    /** Whether we're in production or development environment */
     isProd: boolean;
   };
+  /** Record of links that were transformed during processing */
   transformedLinks?: {
+    /** Original link before transformation */
     original: string;
+    /** Transformed link after processing */
     transformed: string;
   }[];
 }
 
 /**
- * Creates a standardized analysis of the current path and routing context
+ * Creates a standardized analysis of the current path and routing context.
+ * This function is the core of the path analysis system and is used by the
+ * middleware to determine how to handle requests.
+ * 
+ * @param request - Optional Next.js request object. If not provided, will
+ *                 attempt to get information from headers().
+ * @returns A Promise resolving to a complete path analysis
  */
 export async function analyzeCurrentPath(request?: NextRequest): Promise<PathAnalysis> {
   // Get hostname from headers or request
@@ -160,8 +180,15 @@ export async function analyzeCurrentPath(request?: NextRequest): Promise<PathAna
 }
 
 /**
- * Fixes paths that may have been incorrectly formatted
- * Returns the corrected path for redirects
+ * Fixes paths that may have been incorrectly formatted and returns the corrected path for redirects.
+ * This function is used by the middleware to handle path corrections automatically.
+ * 
+ * There are two main cases it handles:
+ * 1. Subdomain mode: Remove username from path (e.g. username.mini.dev/username/page -> username.mini.dev/page)
+ * 2. Path mode: Add username to path (e.g. mini.dev/page -> mini.dev/username/page)
+ * 
+ * @param analysis - The path analysis object from analyzeCurrentPath
+ * @returns The corrected path for redirect, or null if no correction is needed
  */
 export function detectIncorrectPaths(analysis: PathAnalysis): string | null {
   const { detectedUsername, isSubdomain, pathInfo } = analysis;
@@ -191,7 +218,12 @@ export function detectIncorrectPaths(analysis: PathAnalysis): string | null {
 }
 
 /**
- * Generate debug information about the current path
+ * Generate comprehensive debug information about the current path
+ * This function is used by the debugging tools to display detailed information
+ * about the current routing state.
+ * 
+ * @param analysis - The path analysis object from analyzeCurrentPath
+ * @returns A detailed object with all path information and potential issues
  */
 export function getPathDebugInfo(analysis: PathAnalysis): Record<string, any> {
   return {
